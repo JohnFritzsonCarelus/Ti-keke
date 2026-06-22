@@ -1,14 +1,5 @@
 import { useState, useEffect } from "react";
 
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyC8sC0fiGwOAZXMTph5EHAwlTF8PANnkwU",
-  authDomain: "tikeke-a91b8.firebaseapp.com",
-  projectId: "tikeke-a91b8",
-  storageBucket: "tikeke-a91b8.firebasestorage.app",
-  messagingSenderId: "786689362720",
-  appId: "1:786689362720:web:c58434fd35257e3d936545",
-};
-
 const translations = {
   ht: {
     appName: "Ti Kèkè", tagline: "Jwenn lanmou w, jwenn zanmi w 💕",
@@ -186,59 +177,31 @@ export default function TiKeke() {
   const [authName, setAuthName] = useState("");
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
-  const [firebaseAuth, setFirebaseAuth] = useState(null);
 
   useEffect(() => {
-    async function initFB() {
-      try {
-        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
-        const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
-        const app = initializeApp(FIREBASE_CONFIG);
-        const auth = getAuth(app);
-        setFirebaseAuth(auth);
-        onAuthStateChanged(auth, (u) => {
-          if (u) setUser({ email: u.email, name: u.displayName || u.email.split("@")[0], uid: u.uid });
-          else setUser(null);
-        });
-      } catch(e) { console.log("Firebase:", e); }
-    }
-    initFB();
+    // Check localStorage for existing session
+    const saved = localStorage.getItem("tikeke_user");
+    if (saved) setUser(JSON.parse(saved));
   }, []);
 
-  async function handleAuth() {
+  function handleAuth() {
     setAuthError(""); setAuthLoading(true);
-    try {
-      if (firebaseAuth) {
-        const mod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
-        if (authMode === "register") {
-          const cred = await mod.createUserWithEmailAndPassword(firebaseAuth, authEmail, authPass);
-          await mod.updateProfile(cred.user, { displayName: authName });
-          setUser({ email: authEmail, name: authName, uid: cred.user.uid });
-        } else {
-          const cred = await mod.signInWithEmailAndPassword(firebaseAuth, authEmail, authPass);
-          setUser({ email: authEmail, name: cred.user.displayName || authEmail.split("@")[0], uid: cred.user.uid });
-        }
-      } else {
-        setUser({ email: authEmail, name: authName || authEmail.split("@")[0], uid: "demo" });
-      }
-    } catch(e) {
-      const m = e.message || "";
-      setAuthError(
-        m.includes("email-already") ? "Imel sa deja itilize" :
-        m.includes("wrong-password") || m.includes("invalid-credential") ? "Modpas oswa imel mal" :
-        m.includes("user-not-found") ? "Kont pa egziste" :
-        m.includes("weak-password") ? "Modpas twò kout (min 6 karaktè)" :
-        "Erè — eseye ankò"
-      );
+    if (!authEmail.includes("@")) {
+      setAuthError("Imel pa valid"); setAuthLoading(false); return;
     }
-    setAuthLoading(false);
+    if (authPass.length < 6) {
+      setAuthError("Modpas twò kout (min 6 karaktè)"); setAuthLoading(false); return;
+    }
+    setTimeout(() => {
+      const userData = { email: authEmail, name: authName || authEmail.split("@")[0], uid: Date.now().toString() };
+      setUser(userData);
+      localStorage.setItem("tikeke_user", JSON.stringify(userData));
+      setAuthLoading(false);
+    }, 1000);
   }
 
-  async function handleLogout() {
-    if (firebaseAuth) {
-      const { signOut } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
-      await signOut(firebaseAuth);
-    }
+  function handleLogout() {
+    localStorage.removeItem("tikeke_user");
     setUser(null);
   }
 
@@ -658,7 +621,7 @@ export default function TiKeke() {
 
             {cards.length > 0 && (
               <div style={{ display:"flex", justifyContent:"center", gap:18, alignItems:"center" }}>
-                {[["#EF4444",54,"✕","left"],["#3B82F6",48,"⭐","super"],["#FF3B5C",64,"♥️","right"]].map(([color,size,icon,dir]) => (
+                {[["#EF4444",54,"✕","left"],["#3B82F6",48,"⭐","super"],["#FF3B5C",64,"♥","right"]].map(([color,size,icon,dir]) => (
                   <div key={dir} onClick={() => handleSwipe(dir, currentCard)} style={{
                     width:size, height:size, borderRadius:"50%", background:`${color}18`,
                     border:`2px solid ${color}66`, display:"flex", alignItems:"center", justifyContent:"center",
