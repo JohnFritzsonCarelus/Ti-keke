@@ -179,6 +179,7 @@ export default function TiKeke() {
   const [authLoading, setAuthLoading] = useState(false);
   const [setupData, setSetupData] = useState({ name:"", age:"", gender:"", city:"", bio:"", avatar:"🧑🏾", interests:[] });
   const [setupError, setSetupError] = useState("");
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   useEffect(() => {
     // Check localStorage for existing session
@@ -283,18 +284,42 @@ export default function TiKeke() {
             <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)", marginTop:4 }}>Pou moun ka konnen ou! 💕</div>
           </div>
 
-          {/* AVATAR */}
+          {/* PHOTO UPLOAD */}
           <div style={{ textAlign:"center", marginBottom:24 }}>
-            <div style={{ width:100, height:100, borderRadius:"50%", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", margin:"0 auto 12px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:50, cursor:"pointer" }}
-              onClick={() => {
-                const emojis = ["👩🏾","👨🏿","👩🏽","👨🏾","👩🏿","👨🏽","👱🏽‍♀️","👱🏾‍♂️","👩🏻","👨🏻"];
-                const cur = setupData.avatar || "🧑🏾";
-                const idx = emojis.indexOf(cur);
-                setSetupData(p => ({...p, avatar: emojis[(idx+1) % emojis.length]}));
-              }}>
-              {setupData.avatar || "🧑🏾"}
+            <div style={{ width:110, height:110, borderRadius:"50%", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", margin:"0 auto 12px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:50, overflow:"hidden", position:"relative", cursor:"pointer" }}
+              onClick={() => document.getElementById("photoInput").click()}>
+              {setupData.photoUrl
+                ? <img src={setupData.photoUrl} alt="profil" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                : (setupData.avatar || "🧑🏾")
+              }
+              {photoUploading && (
+                <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24 }}>⏳</div>
+              )}
             </div>
-            <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)" }}>Klike pou chanje avatar 👆</div>
+            <input id="photoInput" type="file" accept="image/*" style={{ display:"none" }} onChange={async (e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              setPhotoUploading(true);
+              try {
+                const formData = new FormData();
+                formData.append("file", file);
+                formData.append("upload_preset", "tikeke_profiles");
+                formData.append("cloud_name", "lu0hry6w");
+                const res = await fetch("https://api.cloudinary.com/v1_1/lu0hry6w/image/upload", { method:"POST", body:formData });
+                const data = await res.json();
+                if (data.secure_url) {
+                  setSetupData(p => ({...p, photoUrl: data.secure_url, avatar: "📷"}));
+                } else {
+                  alert("Erè upload foto — eseye ankò");
+                }
+              } catch(err) {
+                alert("Erè koneksyon — eseye ankò");
+              }
+              setPhotoUploading(false);
+            }} />
+            <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", cursor:"pointer" }} onClick={() => document.getElementById("photoInput").click()}>
+              {setupData.photoUrl ? "✅ Foto chanje — klike pou chanje" : "📸 Klike pou ajoute foto ou"}
+            </div>
           </div>
 
           {/* FIELDS */}
