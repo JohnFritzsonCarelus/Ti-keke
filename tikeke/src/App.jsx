@@ -202,6 +202,7 @@ export default function TiKeke() {
       setSetupData(p => ({...p, name: authName || authEmail.split("@")[0]}));
       setUser(userData);
       localStorage.setItem("tikeke_user", JSON.stringify(userData));
+      setShowAuthPopup(false);
       setAuthLoading(false);
     }, 1000);
   }
@@ -227,6 +228,7 @@ export default function TiKeke() {
   function handleSwipe(dir, person) {
     if (!user && (dir === "right" || dir === "super")) {
       setAuthPopupMsg("Kreye yon kont pou wè matche w! 💕");
+      setAuthMode("choice");
       setShowAuthPopup(true);
       return;
     }
@@ -248,6 +250,7 @@ export default function TiKeke() {
   function openChat(person) {
     if (!user) {
       setAuthPopupMsg("Konekte pou ka chate! 💬");
+      setAuthMode("choice");
       setShowAuthPopup(true);
       return;
     }
@@ -512,50 +515,6 @@ export default function TiKeke() {
     );
   }
 
-
-  // ── LOGIN SCREEN ──
-  if (!user) {
-    return (
-      <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0F0F1A,#1A0A2E)", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'Inter',sans-serif", color:"#fff" }}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');*{box-sizing:border-box;margin:0;padding:0}input::placeholder{color:rgba(255,255,255,0.3)}`}</style>
-        <div style={{ width:"100%", maxWidth:400, padding:32 }}>
-          <div style={{ display:"flex", gap:8, marginBottom:28, justifyContent:"center", flexWrap:"wrap" }}>
-            {[["ht","🇭🇹 Kreyòl"],["fr","🇫🇷 Français"],["en","🇺🇸 English"],["es","🇪🇸 Español"]].map(([code,label]) => (
-              <div key={code} onClick={() => setLang(code)} style={{ padding:"6px 12px", borderRadius:20, fontSize:12, cursor:"pointer", background:lang===code?"linear-gradient(135deg,#FF3B5C,#A855F7)":"rgba(255,255,255,0.08)", fontWeight:lang===code?700:400 }}>{label}</div>
-            ))}
-          </div>
-          <div style={{ textAlign:"center", marginBottom:28 }}>
-            <div style={{ fontSize:52, marginBottom:8 }}>💕</div>
-            <div style={{ fontSize:30, fontWeight:900, background:"linear-gradient(90deg,#FF3B5C,#A855F7)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Ti Kèkè</div>
-            <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:4 }}>{t.tagline}</div>
-          </div>
-          <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", borderRadius:24, padding:24 }}>
-            <div style={{ fontSize:18, fontWeight:800, marginBottom:20, textAlign:"center" }}>
-              {authMode==="login" ? "🔑 Konekte" : "✨ Kreye Kont"}
-            </div>
-            {authMode === "register" && (
-              <input style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none", marginBottom:12, display:"block" }}
-                placeholder="Non ou 👤" value={authName} onChange={e => setAuthName(e.target.value)} />
-            )}
-            <input style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none", marginBottom:12, display:"block" }}
-              placeholder="📧 Imel / Email" type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
-            <input style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none", marginBottom:16, display:"block" }}
-              placeholder="🔒 Modpas / Password" type="password" value={authPass} onChange={e => setAuthPass(e.target.value)} />
-            {authError && <div style={{ color:"#FF3B5C", fontSize:13, marginBottom:12, textAlign:"center", padding:"8px", background:"rgba(255,59,92,0.1)", borderRadius:10 }}>{authError}</div>}
-            <button onClick={handleAuth} disabled={authLoading} style={{ width:"100%", padding:"14px", borderRadius:14, border:"none", background:authLoading?"rgba(255,255,255,0.1)":"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", marginBottom:16 }}>
-              {authLoading ? "⏳ ..." : (authMode==="login" ? "🔑 Konekte" : "✨ Kreye Kont")}
-            </button>
-            <div style={{ textAlign:"center", fontSize:13, color:"rgba(255,255,255,0.4)" }}>
-              {authMode==="login" ? "Ou pa gen kont?" : "Ou deja gen kont?"}{" "}
-              <span onClick={() => { setAuthMode(authMode==="login"?"register":"login"); setAuthError(""); }} style={{ color:"#FF3B5C", cursor:"pointer", fontWeight:700 }}>
-                {authMode==="login" ? "Kreye youn!" : "Konekte!"}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const G = {
     app: { minHeight:"100vh", background:"linear-gradient(135deg,#0F0F1A 0%,#1A0A2E 100%)", fontFamily:"'Inter','Segoe UI',sans-serif", color:"#fff", display:"flex", flexDirection:"column", maxWidth:430, margin:"0 auto", position:"relative", overflow:"hidden" },
@@ -1048,24 +1007,43 @@ export default function TiKeke() {
 
       {/* AUTH POPUP */}
       {showAuthPopup && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.88)", zIndex:400, display:"flex", alignItems:"center", justifyContent:"center", padding:"0 24px" }}>
-          <div style={{ background:"linear-gradient(160deg,#12102A,#1E0A3A)", borderRadius:28, width:"100%", maxWidth:380, padding:"32px 28px", textAlign:"center" }}>
-            <div style={{ fontSize:52, marginBottom:16 }}>💕</div>
-            <div style={{ fontSize:20, fontWeight:900, background:"linear-gradient(90deg,#FF3B5C,#A855F7)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:8 }}>
-              {authPopupMsg}
-            </div>
-            <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:28 }}>
-              Gratis epi pran mwens pase 1 minit!
-            </div>
-            <button onClick={() => { setShowAuthPopup(false); setUser(null); setAuthMode("register"); }} style={{ width:"100%", padding:"14px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
-              ✨ Kreye Kont Gratis
-            </button>
-            <button onClick={() => { setShowAuthPopup(false); setUser(null); setAuthMode("login"); }} style={{ width:"100%", padding:"13px", borderRadius:16, border:"1px solid rgba(255,255,255,0.2)", background:"transparent", color:"rgba(255,255,255,0.7)", fontSize:15, cursor:"pointer", marginBottom:16 }}>
-              🔑 Konekte
-            </button>
-            <div onClick={() => setShowAuthPopup(false)} style={{ fontSize:13, color:"rgba(255,255,255,0.3)", cursor:"pointer" }}>
-              Kontinye gade san kont →
-            </div>
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.92)", zIndex:400, display:"flex", alignItems:"center", justifyContent:"center", padding:"0 24px", overflowY:"auto" }}>
+          <div style={{ background:"linear-gradient(160deg,#12102A,#1E0A3A)", borderRadius:28, width:"100%", maxWidth:400, padding:"32px 28px" }}>
+            {authMode === "choice" ? (
+              <div style={{ textAlign:"center" }}>
+                <div style={{ fontSize:52, marginBottom:16 }}>💕</div>
+                <div style={{ fontSize:20, fontWeight:900, background:"linear-gradient(90deg,#FF3B5C,#A855F7)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:8 }}>{authPopupMsg}</div>
+                <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:28 }}>Gratis epi pran mwens pase 1 minit!</div>
+                <button onClick={() => setAuthMode("register")} style={{ width:"100%", padding:"14px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", marginBottom:12 }}>✨ Kreye Kont Gratis</button>
+                <button onClick={() => setAuthMode("login")} style={{ width:"100%", padding:"13px", borderRadius:16, border:"1px solid rgba(255,255,255,0.2)", background:"transparent", color:"rgba(255,255,255,0.7)", fontSize:15, cursor:"pointer", marginBottom:16 }}>🔑 Konekte</button>
+                <div onClick={() => setShowAuthPopup(false)} style={{ fontSize:13, color:"rgba(255,255,255,0.3)", cursor:"pointer" }}>Kontinye gade san kont →</div>
+              </div>
+            ) : (
+              <div>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+                  <div style={{ fontSize:18, fontWeight:800 }}>{authMode==="login" ? "🔑 Konekte" : "✨ Kreye Kont"}</div>
+                  <div onClick={() => { setShowAuthPopup(false); setAuthMode("choice"); setAuthError(""); }} style={{ fontSize:22, cursor:"pointer", color:"rgba(255,255,255,0.4)" }}>✕</div>
+                </div>
+                {authMode==="register" && (
+                  <input style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none", marginBottom:12, display:"block" }}
+                    placeholder="Non ou 👤" value={authName} onChange={e => setAuthName(e.target.value)} />
+                )}
+                <input style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none", marginBottom:12, display:"block" }}
+                  placeholder="📧 Imel / Email" type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
+                <input style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none", marginBottom:16, display:"block" }}
+                  placeholder="🔒 Modpas / Password" type="password" value={authPass} onChange={e => setAuthPass(e.target.value)} />
+                {authError && <div style={{ color:"#FF3B5C", fontSize:13, marginBottom:12, textAlign:"center", padding:"8px", background:"rgba(255,59,92,0.1)", borderRadius:10 }}>{authError}</div>}
+                <button onClick={handleAuth} disabled={authLoading} style={{ width:"100%", padding:"14px", borderRadius:14, border:"none", background:authLoading?"rgba(255,255,255,0.1)":"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
+                  {authLoading ? "⏳ ..." : (authMode==="login" ? "🔑 Konekte" : "✨ Kreye Kont")}
+                </button>
+                <div style={{ textAlign:"center", fontSize:13, color:"rgba(255,255,255,0.4)" }}>
+                  {authMode==="login" ? "Ou pa gen kont?" : "Ou deja gen kont?"}{" "}
+                  <span onClick={() => { setAuthMode(authMode==="login"?"register":"login"); setAuthError(""); }} style={{ color:"#FF3B5C", cursor:"pointer", fontWeight:700 }}>
+                    {authMode==="login" ? "Kreye youn!" : "Konekte!"}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
