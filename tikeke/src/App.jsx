@@ -177,7 +177,7 @@ export default function TiKeke() {
   const [authName, setAuthName] = useState("");
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
-  const [setupData, setSetupData] = useState({ name:"", age:"", gender:"", city:"", bio:"", avatar:"🧑🏾", interests:[] });
+  const [setupData, setSetupData] = useState({ name:"", age:"", gender:"", country:"", city:"", bio:"", avatar:"🧑🏾", interests:[] });
   const [setupError, setSetupError] = useState("");
   const [photoUploading, setPhotoUploading] = useState(false);
 
@@ -340,7 +340,9 @@ export default function TiKeke() {
             </div>
 
             <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
-              placeholder="📍 Vil ou (ex: Port-au-Prince)" value={setupData.city} onChange={e => setSetupData(p => ({...p, city: e.target.value}))} />
+              placeholder="🌍 Peyi ou (ex: Haiti, France, USA...)" value={setupData.country} onChange={e => setSetupData(p => ({...p, country: e.target.value}))} />
+            <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
+              placeholder="📍 Vil ou (ex: Port-au-Prince, Paris...)" value={setupData.city} onChange={e => setSetupData(p => ({...p, city: e.target.value}))} />
 
             <textarea style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none", resize:"none", height:100 }}
               placeholder="💬 Di yon bagay sou ou (bio)..." value={setupData.bio} onChange={e => setSetupData(p => ({...p, bio: e.target.value}))} />
@@ -369,6 +371,7 @@ export default function TiKeke() {
           <button onClick={() => {
             if (!setupData.name) { setSetupError("Mete non ou!"); return; }
             if (!setupData.age || setupData.age < 18) { setSetupError("Ou dwe gen 18 an oswa plis!"); return; }
+            if (!setupData.country) { setSetupError("Mete peyi ou!"); return; }
             if (!setupData.city) { setSetupError("Mete vil ou!"); return; }
             if ((setupData.interests||[]).length < 2) { setSetupError("Chwazi omwen 2 enterè!"); return; }
             const updated = {...user, ...setupData, profileComplete:true};
