@@ -177,6 +177,8 @@ export default function TiKeke() {
   const [authName, setAuthName] = useState("");
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
+  const [setupData, setSetupData] = useState({ name:"", age:"", gender:"", city:"", bio:"", avatar:"🧑🏾", interests:[] });
+  const [setupError, setSetupError] = useState("");
 
   useEffect(() => {
     // Check localStorage for existing session
@@ -193,7 +195,8 @@ export default function TiKeke() {
       setAuthError("Modpas twò kout (min 6 karaktè)"); setAuthLoading(false); return;
     }
     setTimeout(() => {
-      const userData = { email: authEmail, name: authName || authEmail.split("@")[0], uid: Date.now().toString() };
+      const userData = { email: authEmail, name: authName || authEmail.split("@")[0], uid: Date.now().toString(), profileComplete: false };
+      setSetupData(p => ({...p, name: authName || authEmail.split("@")[0]}));
       setUser(userData);
       localStorage.setItem("tikeke_user", JSON.stringify(userData));
       setAuthLoading(false);
@@ -265,6 +268,93 @@ export default function TiKeke() {
     setSelectedPlan(null);
     setPayMethod(null);
     setFormData({ cardNum:"", expiry:"", cvv:"", phone:"", email:"" });
+  }
+
+
+  // ── PROFILE SETUP SCREEN ──
+  if (user && !user.profileComplete) {
+    return (
+      <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0F0F1A,#1A0A2E)", fontFamily:"'Inter',sans-serif", color:"#fff", overflowY:"auto" }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');*{box-sizing:border-box;margin:0;padding:0}input::placeholder{color:rgba(255,255,255,0.3)}textarea::placeholder{color:rgba(255,255,255,0.3)}`}</style>
+        <div style={{ maxWidth:430, margin:"0 auto", padding:"32px 24px 60px" }}>
+          <div style={{ textAlign:"center", marginBottom:28 }}>
+            <div style={{ fontSize:40, marginBottom:8 }}>✨</div>
+            <div style={{ fontSize:22, fontWeight:900, background:"linear-gradient(90deg,#FF3B5C,#A855F7)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Kreye Pwofil Ou</div>
+            <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)", marginTop:4 }}>Pou moun ka konnen ou! 💕</div>
+          </div>
+
+          {/* AVATAR */}
+          <div style={{ textAlign:"center", marginBottom:24 }}>
+            <div style={{ width:100, height:100, borderRadius:"50%", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", margin:"0 auto 12px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:50, cursor:"pointer" }}
+              onClick={() => {
+                const emojis = ["👩🏾","👨🏿","👩🏽","👨🏾","👩🏿","👨🏽","👱🏽‍♀️","👱🏾‍♂️","👩🏻","👨🏻"];
+                const cur = setupData.avatar || "🧑🏾";
+                const idx = emojis.indexOf(cur);
+                setSetupData(p => ({...p, avatar: emojis[(idx+1) % emojis.length]}));
+              }}>
+              {setupData.avatar || "🧑🏾"}
+            </div>
+            <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)" }}>Klike pou chanje avatar 👆</div>
+          </div>
+
+          {/* FIELDS */}
+          <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:20 }}>
+            <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
+              placeholder="👤 Non ou (obligatwa)" value={setupData.name} onChange={e => setSetupData(p => ({...p, name: e.target.value}))} />
+
+            <div style={{ display:"flex", gap:10 }}>
+              <input style={{ flex:1, padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
+                placeholder="🎂 Laj" type="number" min="18" max="99" value={setupData.age} onChange={e => setSetupData(p => ({...p, age: e.target.value}))} />
+              <select style={{ flex:1, padding:"14px 16px", borderRadius:14, background:"#1A1A2E", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none" }}
+                value={setupData.gender} onChange={e => setSetupData(p => ({...p, gender: e.target.value}))}>
+                <option value="">⚧ Sèks</option>
+                <option value="homme">👨 Gason</option>
+                <option value="femme">👩 Fanm</option>
+                <option value="autre">🌈 Lòt</option>
+              </select>
+            </div>
+
+            <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
+              placeholder="📍 Vil ou (ex: Port-au-Prince)" value={setupData.city} onChange={e => setSetupData(p => ({...p, city: e.target.value}))} />
+
+            <textarea style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none", resize:"none", height:100 }}
+              placeholder="💬 Di yon bagay sou ou (bio)..." value={setupData.bio} onChange={e => setSetupData(p => ({...p, bio: e.target.value}))} />
+          </div>
+
+          {/* INTERESTS */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:12, letterSpacing:1, textTransform:"uppercase" }}>Enterè ou (chwazi 3+)</div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+              {["Mizik 🎵","Danse 💃","Vwayaj ✈️","Manje 🍽️","Spò ⚽","Lekti 📚","Fim 🎬","Atizana 🎨","Nati 🌿","Biznis 💼","Mode 👗","Jwèt 🎮","Kwizin 👨‍🍳","Foto 📸","Yoga 🧘"].map(interest => {
+                const sel = (setupData.interests || []).includes(interest);
+                return (
+                  <div key={interest} onClick={() => {
+                    const cur = setupData.interests || [];
+                    setSetupData(p => ({...p, interests: sel ? cur.filter(i=>i!==interest) : [...cur, interest]}));
+                  }} style={{ padding:"8px 14px", borderRadius:20, fontSize:13, cursor:"pointer", background:sel?"linear-gradient(135deg,#FF3B5C,#A855F7)":"rgba(255,255,255,0.07)", border:sel?"none":"1px solid rgba(255,255,255,0.12)", fontWeight:sel?700:400 }}>
+                    {interest}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {setupError && <div style={{ color:"#FF3B5C", fontSize:13, marginBottom:12, textAlign:"center", padding:"8px", background:"rgba(255,59,92,0.1)", borderRadius:10 }}>{setupError}</div>}
+
+          <button onClick={() => {
+            if (!setupData.name) { setSetupError("Mete non ou!"); return; }
+            if (!setupData.age || setupData.age < 18) { setSetupError("Ou dwe gen 18 an oswa plis!"); return; }
+            if (!setupData.city) { setSetupError("Mete vil ou!"); return; }
+            if ((setupData.interests||[]).length < 2) { setSetupError("Chwazi omwen 2 enterè!"); return; }
+            const updated = {...user, ...setupData, profileComplete:true};
+            setUser(updated);
+            localStorage.setItem("tikeke_user", JSON.stringify(updated));
+          }} style={{ width:"100%", padding:"16px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer" }}>
+            💕 Kòmanse Ti Kèkè!
+          </button>
+        </div>
+      </div>
+    );
   }
 
 
