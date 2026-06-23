@@ -180,6 +180,8 @@ export default function TiKeke() {
   const [setupData, setSetupData] = useState({ name:"", age:"", gender:"", country:"", city:"", bio:"", avatar:"🧑🏾", interests:[] });
   const [setupError, setSetupError] = useState("");
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [showAuthPopup, setShowAuthPopup] = useState(false);
+  const [authPopupMsg, setAuthPopupMsg] = useState("");
 
   useEffect(() => {
     // Check localStorage for existing session
@@ -223,6 +225,11 @@ export default function TiKeke() {
   const currentCard = cards[cards.length - 1];
 
   function handleSwipe(dir, person) {
+    if (!user && (dir === "right" || dir === "super")) {
+      setAuthPopupMsg("Kreye yon kont pou wè matche w! 💕");
+      setShowAuthPopup(true);
+      return;
+    }
     if (!isPremium && dir === "super") { setShowPaywall(true); return; }
     setSwipeDir(dir);
     setTimeout(() => {
@@ -239,6 +246,11 @@ export default function TiKeke() {
   }
 
   function openChat(person) {
+    if (!user) {
+      setAuthPopupMsg("Konekte pou ka chate! 💬");
+      setShowAuthPopup(true);
+      return;
+    }
     if (!isPremium) { setShowPaywall(true); return; }
     setActiveChat(person); setTab("chat");
   }
@@ -270,6 +282,121 @@ export default function TiKeke() {
     setPayMethod(null);
     setFormData({ cardNum:"", expiry:"", cvv:"", phone:"", email:"" });
   }
+
+
+  // ── PROFILE SETUP SCREEN ──
+  if (user && !user.profileComplete) {
+    return (
+      <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0F0F1A,#1A0A2E)", fontFamily:"'Inter',sans-serif", color:"#fff", overflowY:"auto" }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');*{box-sizing:border-box;margin:0;padding:0}input::placeholder{color:rgba(255,255,255,0.3)}textarea::placeholder{color:rgba(255,255,255,0.3)}`}</style>
+        <div style={{ maxWidth:430, margin:"0 auto", padding:"32px 24px 60px" }}>
+          <div style={{ textAlign:"center", marginBottom:28 }}>
+            <div style={{ fontSize:40, marginBottom:8 }}>✨</div>
+            <div style={{ fontSize:22, fontWeight:900, background:"linear-gradient(90deg,#FF3B5C,#A855F7)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Kreye Pwofil Ou</div>
+            <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)", marginTop:4 }}>Pou moun ka konnen ou! 💕</div>
+          </div>
+
+          {/* PHOTO UPLOAD */}
+          <div style={{ textAlign:"center", marginBottom:24 }}>
+            <div style={{ width:110, height:110, borderRadius:"50%", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", margin:"0 auto 12px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:50, overflow:"hidden", position:"relative", cursor:"pointer" }}
+              onClick={() => document.getElementById("photoInput").click()}>
+              {setupData.photoUrl
+                ? <img src={setupData.photoUrl} alt="profil" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                : (setupData.avatar || "🧑🏾")
+              }
+              {photoUploading && (
+                <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24 }}>⏳</div>
+              )}
+            </div>
+            <input id="photoInput" type="file" accept="image/*" style={{ display:"none" }} onChange={async (e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              setPhotoUploading(true);
+              try {
+                const formData = new FormData();
+                formData.append("file", file);
+                formData.append("upload_preset", "tikeke_profiles");
+                formData.append("cloud_name", "lu0hry6w");
+                const res = await fetch("https://api.cloudinary.com/v1_1/lu0hry6w/image/upload", { method:"POST", body:formData });
+                const data = await res.json();
+                if (data.secure_url) {
+                  setSetupData(p => ({...p, photoUrl: data.secure_url, avatar: "📷"}));
+                } else {
+                  alert("Erè upload foto — eseye ankò");
+                }
+              } catch(err) {
+                alert("Erè koneksyon — eseye ankò");
+              }
+              setPhotoUploading(false);
+            }} />
+            <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", cursor:"pointer" }} onClick={() => document.getElementById("photoInput").click()}>
+              {setupData.photoUrl ? "✅ Foto chanje — klike pou chanje" : "📸 Klike pou ajoute foto ou"}
+            </div>
+          </div>
+
+          {/* FIELDS */}
+          <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:20 }}>
+            <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
+              placeholder="👤 Non ou (obligatwa)" value={setupData.name} onChange={e => setSetupData(p => ({...p, name: e.target.value}))} />
+
+            <div style={{ display:"flex", gap:10 }}>
+              <input style={{ flex:1, padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
+                placeholder="🎂 Laj" type="number" min="18" max="99" value={setupData.age} onChange={e => setSetupData(p => ({...p, age: e.target.value}))} />
+              <select style={{ flex:1, padding:"14px 16px", borderRadius:14, background:"#1A1A2E", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none" }}
+                value={setupData.gender} onChange={e => setSetupData(p => ({...p, gender: e.target.value}))}>
+                <option value="">⚧ Sèks</option>
+                <option value="homme">👨 Gason</option>
+                <option value="femme">👩 Fanm</option>
+                <option value="autre">🌈 Lòt</option>
+              </select>
+            </div>
+
+            <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
+              placeholder="🌍 Peyi ou (ex: Haiti, France, USA...)" value={setupData.country} onChange={e => setSetupData(p => ({...p, country: e.target.value}))} />
+            <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
+              placeholder="📍 Vil ou (ex: Port-au-Prince, Paris...)" value={setupData.city} onChange={e => setSetupData(p => ({...p, city: e.target.value}))} />
+
+            <textarea style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none", resize:"none", height:100 }}
+              placeholder="💬 Di yon bagay sou ou (bio)..." value={setupData.bio} onChange={e => setSetupData(p => ({...p, bio: e.target.value}))} />
+          </div>
+
+          {/* INTERESTS */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:12, letterSpacing:1, textTransform:"uppercase" }}>Enterè ou (chwazi 3+)</div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+              {["Mizik 🎵","Danse 💃","Vwayaj ✈️","Manje 🍽️","Spò ⚽","Lekti 📚","Fim 🎬","Atizana 🎨","Nati 🌿","Biznis 💼","Mode 👗","Jwèt 🎮","Kwizin 👨‍🍳","Foto 📸","Yoga 🧘"].map(interest => {
+                const sel = (setupData.interests || []).includes(interest);
+                return (
+                  <div key={interest} onClick={() => {
+                    const cur = setupData.interests || [];
+                    setSetupData(p => ({...p, interests: sel ? cur.filter(i=>i!==interest) : [...cur, interest]}));
+                  }} style={{ padding:"8px 14px", borderRadius:20, fontSize:13, cursor:"pointer", background:sel?"linear-gradient(135deg,#FF3B5C,#A855F7)":"rgba(255,255,255,0.07)", border:sel?"none":"1px solid rgba(255,255,255,0.12)", fontWeight:sel?700:400 }}>
+                    {interest}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {setupError && <div style={{ color:"#FF3B5C", fontSize:13, marginBottom:12, textAlign:"center", padding:"8px", background:"rgba(255,59,92,0.1)", borderRadius:10 }}>{setupError}</div>}
+
+          <button onClick={() => {
+            if (!setupData.name) { setSetupError("Mete non ou!"); return; }
+            if (!setupData.age || setupData.age < 18) { setSetupError("Ou dwe gen 18 an oswa plis!"); return; }
+            if (!setupData.country) { setSetupError("Mete peyi ou!"); return; }
+            if (!setupData.city) { setSetupError("Mete vil ou!"); return; }
+            if ((setupData.interests||[]).length < 2) { setSetupError("Chwazi omwen 2 enterè!"); return; }
+            const updated = {...user, ...setupData, profileComplete:true};
+            setUser(updated);
+            localStorage.setItem("tikeke_user", JSON.stringify(updated));
+          }} style={{ width:"100%", padding:"16px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer" }}>
+            💕 Kòmanse Ti Kèkè!
+          </button>
+        </div>
+      </div>
+    );
+  }
+
 
 
   // ── PROFILE SETUP SCREEN ──
@@ -915,6 +1042,31 @@ export default function TiKeke() {
           <button onClick={() => { setShowMatch(null); openChat(showMatch); }} style={{ background:"linear-gradient(135deg,#FF3B5C,#A855F7)", border:"none", borderRadius:22, padding:"13px 36px", color:"#fff", fontSize:16, fontWeight:700, cursor:"pointer" }}>
             💬 {t.sendMsg.split("...")[0]}
           </button>
+        </div>
+      )}
+
+
+      {/* AUTH POPUP */}
+      {showAuthPopup && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.88)", zIndex:400, display:"flex", alignItems:"center", justifyContent:"center", padding:"0 24px" }}>
+          <div style={{ background:"linear-gradient(160deg,#12102A,#1E0A3A)", borderRadius:28, width:"100%", maxWidth:380, padding:"32px 28px", textAlign:"center" }}>
+            <div style={{ fontSize:52, marginBottom:16 }}>💕</div>
+            <div style={{ fontSize:20, fontWeight:900, background:"linear-gradient(90deg,#FF3B5C,#A855F7)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:8 }}>
+              {authPopupMsg}
+            </div>
+            <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:28 }}>
+              Gratis epi pran mwens pase 1 minit!
+            </div>
+            <button onClick={() => { setShowAuthPopup(false); setUser(null); setAuthMode("register"); }} style={{ width:"100%", padding:"14px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
+              ✨ Kreye Kont Gratis
+            </button>
+            <button onClick={() => { setShowAuthPopup(false); setUser(null); setAuthMode("login"); }} style={{ width:"100%", padding:"13px", borderRadius:16, border:"1px solid rgba(255,255,255,0.2)", background:"transparent", color:"rgba(255,255,255,0.7)", fontSize:15, cursor:"pointer", marginBottom:16 }}>
+              🔑 Konekte
+            </button>
+            <div onClick={() => setShowAuthPopup(false)} style={{ fontSize:13, color:"rgba(255,255,255,0.3)", cursor:"pointer" }}>
+              Kontinye gade san kont →
+            </div>
+          </div>
         </div>
       )}
 
