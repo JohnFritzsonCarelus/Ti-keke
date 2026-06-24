@@ -256,6 +256,7 @@ export default function TiKeke() {
       setShowAuthPopup(true);
       return;
     }
+    if (!isPremium) { setShowPaywall(true); return; }
     setActiveChat(person); setTab("chat");
   }
 
