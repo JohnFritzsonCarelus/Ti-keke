@@ -179,7 +179,7 @@ export default function TiKeke() {
   const [authName, setAuthName] = useState("");
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
-  const [setupData, setSetupData] = useState({ name:"", age:"", gender:"", country:"", city:"", bio:"", avatar:"🧑🏾", interests:[] });
+  const [setupData, setSetupData] = useState({ name:"", age:"", gender:"", country:"", city:"", bio:"", avatar:"🧑🏾", interests:[], photos:[] });
   const [setupError, setSetupError] = useState("");
   const [photoUploading, setPhotoUploading] = useState(false);
   const [showAuthPopup, setShowAuthPopup] = useState(false);
@@ -338,42 +338,50 @@ export default function TiKeke() {
             <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)", marginTop:4 }}>Pou moun ka konnen ou! 💕</div>
           </div>
 
-          {/* PHOTO UPLOAD */}
-          <div style={{ textAlign:"center", marginBottom:24 }}>
-            <div style={{ width:110, height:110, borderRadius:"50%", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", margin:"0 auto 12px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:50, overflow:"hidden", position:"relative", cursor:"pointer" }}
-              onClick={() => document.getElementById("photoInput").click()}>
-              {setupData.photoUrl
-                ? <img src={setupData.photoUrl} alt="profil" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                : (setupData.avatar || "🧑🏾")
-              }
-              {photoUploading && (
-                <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24 }}>⏳</div>
-              )}
+          {/* PHOTO GALLERY */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:12, letterSpacing:1, textTransform:"uppercase" }}>📸 Foto ou (premye foto = foto prensipal)</div>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
+              {[0,1,2,3,4,5].map(idx => {
+                const photo = (setupData.photos || [])[idx];
+                return (
+                  <div key={idx} style={{ aspectRatio:"1", borderRadius:14, overflow:"hidden", position:"relative", background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}
+                    onClick={() => { if(!photo) document.getElementById(`photoInput_${idx}`).click(); }}>
+                    {photo ? (
+                      <>
+                        <img src={photo} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                        <div onClick={e => { e.stopPropagation(); setSetupData(p => ({...p, photos: p.photos.filter((_,i)=>i!==idx), photoUrl: idx===0 ? (p.photos[1]||null) : p.photoUrl})); }}
+                          style={{ position:"absolute", top:4, right:4, width:22, height:22, borderRadius:"50%", background:"rgba(0,0,0,0.7)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, color:"#fff" }}>✕</div>
+                        {idx === 0 && <div style={{ position:"absolute", bottom:4, left:4, background:"linear-gradient(135deg,#FF3B5C,#A855F7)", borderRadius:8, padding:"2px 8px", fontSize:10, fontWeight:700 }}>Prensipal</div>}
+                      </>
+                    ) : (
+                      <div style={{ textAlign:"center", color:"rgba(255,255,255,0.3)" }}>
+                        <div style={{ fontSize:24 }}>➕</div>
+                        <div style={{ fontSize:10, marginTop:4 }}>{idx === 0 ? "Prensipal" : `Foto ${idx+1}`}</div>
+                      </div>
+                    )}
+                    <input id={`photoInput_${idx}`} type="file" accept="image/*" style={{ display:"none" }} onChange={async (e) => {
+                      const file = e.target.files[0]; if (!file) return;
+                      setPhotoUploading(true);
+                      try {
+                        const fd = new FormData(); fd.append("file", file); fd.append("upload_preset", "tikeke_profiles"); fd.append("cloud_name", "lu0hry6w");
+                        const res = await fetch("https://api.cloudinary.com/v1_1/lu0hry6w/image/upload", { method:"POST", body:fd });
+                        const data = await res.json();
+                        if (data.secure_url) {
+                          setSetupData(p => {
+                            const newPhotos = [...(p.photos||[])];
+                            newPhotos[idx] = data.secure_url;
+                            return {...p, photos: newPhotos.filter(Boolean), photoUrl: newPhotos[0] || p.photoUrl};
+                          });
+                        }
+                      } catch(err) { alert("Erè — eseye ankò"); }
+                      setPhotoUploading(false);
+                    }} />
+                  </div>
+                );
+              })}
             </div>
-            <input id="photoInput" type="file" accept="image/*" style={{ display:"none" }} onChange={async (e) => {
-              const file = e.target.files[0];
-              if (!file) return;
-              setPhotoUploading(true);
-              try {
-                const formData = new FormData();
-                formData.append("file", file);
-                formData.append("upload_preset", "tikeke_profiles");
-                formData.append("cloud_name", "lu0hry6w");
-                const res = await fetch("https://api.cloudinary.com/v1_1/lu0hry6w/image/upload", { method:"POST", body:formData });
-                const data = await res.json();
-                if (data.secure_url) {
-                  setSetupData(p => ({...p, photoUrl: data.secure_url, avatar: "📷"}));
-                } else {
-                  alert("Erè upload foto — eseye ankò");
-                }
-              } catch(err) {
-                alert("Erè koneksyon — eseye ankò");
-              }
-              setPhotoUploading(false);
-            }} />
-            <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", cursor:"pointer" }} onClick={() => document.getElementById("photoInput").click()}>
-              {setupData.photoUrl ? "✅ Foto chanje — klike pou chanje" : "📸 Klike pou ajoute foto ou"}
-            </div>
+            {photoUploading && <div style={{ textAlign:"center", marginTop:8, fontSize:13, color:"rgba(255,255,255,0.5)" }}>⏳ Ap telechaje foto...</div>}
           </div>
 
           {/* FIELDS */}
@@ -453,42 +461,50 @@ export default function TiKeke() {
             <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)", marginTop:4 }}>Pou moun ka konnen ou! 💕</div>
           </div>
 
-          {/* PHOTO UPLOAD */}
-          <div style={{ textAlign:"center", marginBottom:24 }}>
-            <div style={{ width:110, height:110, borderRadius:"50%", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", margin:"0 auto 12px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:50, overflow:"hidden", position:"relative", cursor:"pointer" }}
-              onClick={() => document.getElementById("photoInput").click()}>
-              {setupData.photoUrl
-                ? <img src={setupData.photoUrl} alt="profil" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                : (setupData.avatar || "🧑🏾")
-              }
-              {photoUploading && (
-                <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24 }}>⏳</div>
-              )}
+          {/* PHOTO GALLERY */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:12, letterSpacing:1, textTransform:"uppercase" }}>📸 Foto ou (premye foto = foto prensipal)</div>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
+              {[0,1,2,3,4,5].map(idx => {
+                const photo = (setupData.photos || [])[idx];
+                return (
+                  <div key={idx} style={{ aspectRatio:"1", borderRadius:14, overflow:"hidden", position:"relative", background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}
+                    onClick={() => { if(!photo) document.getElementById(`photoInput_${idx}`).click(); }}>
+                    {photo ? (
+                      <>
+                        <img src={photo} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                        <div onClick={e => { e.stopPropagation(); setSetupData(p => ({...p, photos: p.photos.filter((_,i)=>i!==idx), photoUrl: idx===0 ? (p.photos[1]||null) : p.photoUrl})); }}
+                          style={{ position:"absolute", top:4, right:4, width:22, height:22, borderRadius:"50%", background:"rgba(0,0,0,0.7)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, color:"#fff" }}>✕</div>
+                        {idx === 0 && <div style={{ position:"absolute", bottom:4, left:4, background:"linear-gradient(135deg,#FF3B5C,#A855F7)", borderRadius:8, padding:"2px 8px", fontSize:10, fontWeight:700 }}>Prensipal</div>}
+                      </>
+                    ) : (
+                      <div style={{ textAlign:"center", color:"rgba(255,255,255,0.3)" }}>
+                        <div style={{ fontSize:24 }}>➕</div>
+                        <div style={{ fontSize:10, marginTop:4 }}>{idx === 0 ? "Prensipal" : `Foto ${idx+1}`}</div>
+                      </div>
+                    )}
+                    <input id={`photoInput_${idx}`} type="file" accept="image/*" style={{ display:"none" }} onChange={async (e) => {
+                      const file = e.target.files[0]; if (!file) return;
+                      setPhotoUploading(true);
+                      try {
+                        const fd = new FormData(); fd.append("file", file); fd.append("upload_preset", "tikeke_profiles"); fd.append("cloud_name", "lu0hry6w");
+                        const res = await fetch("https://api.cloudinary.com/v1_1/lu0hry6w/image/upload", { method:"POST", body:fd });
+                        const data = await res.json();
+                        if (data.secure_url) {
+                          setSetupData(p => {
+                            const newPhotos = [...(p.photos||[])];
+                            newPhotos[idx] = data.secure_url;
+                            return {...p, photos: newPhotos.filter(Boolean), photoUrl: newPhotos[0] || p.photoUrl};
+                          });
+                        }
+                      } catch(err) { alert("Erè — eseye ankò"); }
+                      setPhotoUploading(false);
+                    }} />
+                  </div>
+                );
+              })}
             </div>
-            <input id="photoInput" type="file" accept="image/*" style={{ display:"none" }} onChange={async (e) => {
-              const file = e.target.files[0];
-              if (!file) return;
-              setPhotoUploading(true);
-              try {
-                const formData = new FormData();
-                formData.append("file", file);
-                formData.append("upload_preset", "tikeke_profiles");
-                formData.append("cloud_name", "lu0hry6w");
-                const res = await fetch("https://api.cloudinary.com/v1_1/lu0hry6w/image/upload", { method:"POST", body:formData });
-                const data = await res.json();
-                if (data.secure_url) {
-                  setSetupData(p => ({...p, photoUrl: data.secure_url, avatar: "📷"}));
-                } else {
-                  alert("Erè upload foto — eseye ankò");
-                }
-              } catch(err) {
-                alert("Erè koneksyon — eseye ankò");
-              }
-              setPhotoUploading(false);
-            }} />
-            <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", cursor:"pointer" }} onClick={() => document.getElementById("photoInput").click()}>
-              {setupData.photoUrl ? "✅ Foto chanje — klike pou chanje" : "📸 Klike pou ajoute foto ou"}
-            </div>
+            {photoUploading && <div style={{ textAlign:"center", marginTop:8, fontSize:13, color:"rgba(255,255,255,0.5)" }}>⏳ Ap telechaje foto...</div>}
           </div>
 
           {/* FIELDS */}
@@ -987,8 +1003,19 @@ export default function TiKeke() {
               
               {/* Photo */}
               <div style={{ width:90, height:90, borderRadius:"50%", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", margin:"0 auto 12px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:44, overflow:"hidden" }}>
-                {user?.photoUrl ? <img src={user.photoUrl} alt="profil" style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : (user?.avatar || "🧑🏾")}
+                {user?.photos?.[0] ? <img src={user.photos[0]} alt="profil" style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : user?.photoUrl ? <img src={user.photoUrl} alt="profil" style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : (user?.avatar || "🧑🏾")}
               </div>
+              {/* Photo gallery preview */}
+              {user?.photos?.length > 1 && (
+                <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:12 }}>
+                  {user.photos.slice(1,4).map((p,i) => (
+                    <div key={i} style={{ width:48, height:48, borderRadius:10, overflow:"hidden", border:"2px solid rgba(255,59,92,0.4)" }}>
+                      <img src={p} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                    </div>
+                  ))}
+                  {user.photos.length > 4 && <div style={{ width:48, height:48, borderRadius:10, background:"rgba(255,255,255,0.1)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700 }}>+{user.photos.length-4}</div>}
+                </div>
+              )}
               
               <div style={{ fontSize:22, fontWeight:800, marginBottom:4 }}>{user?.name || "Mwen"}</div>
               <div style={{ fontSize:13, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>
