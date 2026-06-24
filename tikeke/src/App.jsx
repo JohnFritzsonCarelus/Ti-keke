@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
+const FIREBASE_DB_URL = "https://tikeke-a91b8-default-rtdb.firebaseio.com";
 
 const translations = {
   ht: {
@@ -258,10 +260,21 @@ export default function TiKeke() {
     setActiveChat(person); setTab("chat");
   }
 
-  function sendMessage() {
-    if (!inputMsg.trim() || !activeChat) return;
-    setMsgs(prev => ({ ...prev, [activeChat.id]: [...(prev[activeChat.id]||[]), { from:"me", text:inputMsg }] }));
+  async function sendMessage() {
+    if (!inputMsg.trim() || !activeChat || !user) return;
+    const chatId = [user.uid, String(activeChat.id)].sort().join("_");
+    const msg = { text: inputMsg, from: user.uid, senderName: user.name, timestamp: Date.now() };
     setInputMsg("");
+    try {
+      await fetch(`${FIREBASE_DB_URL}/chats/${chatId}/messages.json`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(msg)
+      });
+    } catch(e) {
+      // Fallback to local if Firebase fails
+      setMsgs(prev => ({ ...prev, [activeChat.id]: [...(prev[activeChat.id]||[]), { from:"me", text:msg.text }] }));
+    }
   }
 
   function startPayment(p) {
@@ -286,6 +299,29 @@ export default function TiKeke() {
     setFormData({ cardNum:"", expiry:"", cvv:"", phone:"", email:"" });
   }
 
+
+  // ── REALTIME CHAT ──
+  useEffect(() => {
+    if (!activeChat || !user) return;
+    const chatId = [user.uid, String(activeChat.id)].sort().join("_");
+    
+    async function loadMessages() {
+      try {
+        const res = await fetch(`${FIREBASE_DB_URL}/chats/${chatId}/messages.json`);
+        const data = await res.json();
+        if (data) {
+          const allMsgs = Object.values(data)
+            .sort((a,b) => a.timestamp - b.timestamp)
+            .map(m => ({ from: m.from === user.uid ? "me" : "them", text: m.text }));
+          setMsgs(prev => ({ ...prev, [activeChat.id]: allMsgs }));
+        }
+      } catch(e) {}
+    }
+    loadMessages();
+    
+    const interval = setInterval(loadMessages, 3000);
+    return () => clearInterval(interval);
+  }, [activeChat, user]);
 
   // ── PROFILE SETUP SCREEN ──
   if (user && !user.profileComplete) {
