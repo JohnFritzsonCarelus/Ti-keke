@@ -256,7 +256,6 @@ export default function TiKeke() {
       setShowAuthPopup(true);
       return;
     }
-    if (!isPremium) { setShowPaywall(true); return; }
     setActiveChat(person); setTab("chat");
   }
 
@@ -916,7 +915,7 @@ export default function TiKeke() {
                     <div style={{ fontSize:15, fontWeight:700 }}>{m.name}</div>
                     <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{msgs[m.id]?.slice(-1)[0]?.text || "..."}</div>
                   </div>
-                  {!isPremium && <span style={{ fontSize:14 }}>🔒</span>}
+                  
                   {m.online && isPremium && <span style={{ display:"inline-block", width:10, height:10, borderRadius:"50%", background:"#22C55E" }} />}
                 </div>
               ))}
@@ -968,7 +967,7 @@ export default function TiKeke() {
                   <div style={{ fontSize:15, fontWeight:700 }}>{m.name}</div>
                   <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{msgs[m.id]?.slice(-1)[0]?.text || t.itsMatch}</div>
                 </div>
-                {!isPremium && <span style={{ fontSize:14 }}>🔒</span>}
+                
               </div>
             ))}
           </div>
