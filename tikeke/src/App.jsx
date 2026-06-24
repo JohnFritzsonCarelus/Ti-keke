@@ -256,7 +256,9 @@ export default function TiKeke() {
       setShowAuthPopup(true);
       return;
     }
-    if (!isPremium) { setShowPaywall(true); return; }
+    // Check if person already sent a message (they can reply for free)
+    const hasMessages = msgs[person.id] && msgs[person.id].some(m => m.from === "them");
+    if (!isPremium && !hasMessages) { setShowPaywall(true); return; }
     setActiveChat(person); setTab("chat");
   }
 
