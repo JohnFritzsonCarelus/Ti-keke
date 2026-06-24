@@ -189,7 +189,25 @@ export default function TiKeke() {
   useEffect(() => {
     // Check localStorage for existing session
     const saved = localStorage.getItem("tikeke_user");
-    if (saved) setUser(JSON.parse(saved));
+    if (saved) {
+      const userData = JSON.parse(saved);
+      setUser(userData);
+      // Pre-fill setup data if user has existing profile
+      if (userData.profileComplete) {
+        setSetupData({
+          name: userData.name || "",
+          age: userData.age || "",
+          gender: userData.gender || "",
+          country: userData.country || "",
+          city: userData.city || "",
+          bio: userData.bio || "",
+          avatar: userData.avatar || "🧑🏾",
+          photos: userData.photos || [],
+          photoUrl: userData.photoUrl || null,
+          interests: userData.interests || []
+        });
+      }
+    }
   }, []);
 
   function handleAuth() {
@@ -436,7 +454,19 @@ export default function TiKeke() {
             if (!setupData.country) { setSetupError("Mete peyi ou!"); return; }
             if (!setupData.city) { setSetupError("Mete vil ou!"); return; }
             if ((setupData.interests||[]).length < 2) { setSetupError("Chwazi omwen 2 enterè!"); return; }
-            const updated = {...user, ...setupData, profileComplete:true};
+            const updated = {
+              ...user, 
+              name: setupData.name,
+              age: setupData.age,
+              gender: setupData.gender,
+              country: setupData.country,
+              city: setupData.city,
+              bio: setupData.bio,
+              photos: setupData.photos || [],
+              photoUrl: (setupData.photos && setupData.photos[0]) || setupData.photoUrl || null,
+              interests: setupData.interests,
+              profileComplete: true
+            };
             setUser(updated);
             localStorage.setItem("tikeke_user", JSON.stringify(updated));
           }} style={{ width:"100%", padding:"16px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer" }}>
