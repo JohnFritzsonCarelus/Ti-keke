@@ -184,6 +184,7 @@ export default function TiKeke() {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [showAuthPopup, setShowAuthPopup] = useState(false);
   const [authPopupMsg, setAuthPopupMsg] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     // Check localStorage for existing session
@@ -977,26 +978,38 @@ export default function TiKeke() {
         )}
 
         {/* ── PROFILE ── */}
-        {tab === "profile" && (
+        {tab === "profile" && !showSettings && (
           <div style={{ padding:"24px 20px" }}>
-            <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", borderRadius:24, padding:24, textAlign:"center", marginBottom:20 }}>
-              <span style={{ fontSize:80, marginBottom:12, display:"block" }}>🧑🏾</span>
-              <div style={{ fontSize:24, fontWeight:800, marginBottom:4 }}>Mwen</div>
-              <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:12 }}>📍 Port-au-Prince · 26 {t.age}</div>
+            {/* PROFILE CARD */}
+            <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", borderRadius:24, padding:24, textAlign:"center", marginBottom:20, position:"relative" }}>
+              {/* Settings button */}
+              <div onClick={() => setShowSettings(true)} style={{ position:"absolute", top:16, right:16, width:36, height:36, borderRadius:"50%", background:"rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:18 }}>⚙️</div>
+              
+              {/* Photo */}
+              <div style={{ width:90, height:90, borderRadius:"50%", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", margin:"0 auto 12px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:44, overflow:"hidden" }}>
+                {user?.photoUrl ? <img src={user.photoUrl} alt="profil" style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : (user?.avatar || "🧑🏾")}
+              </div>
+              
+              <div style={{ fontSize:22, fontWeight:800, marginBottom:4 }}>{user?.name || "Mwen"}</div>
+              <div style={{ fontSize:13, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>
+                {user?.country && `🌍 ${user.country}`} {user?.city && `· 📍 ${user.city}`} {user?.age && `· ${user.age} ${t.age}`}
+              </div>
+              {user?.bio && <div style={{ fontSize:13, color:"rgba(255,255,255,0.7)", marginBottom:12, lineHeight:1.5 }}>{user.bio}</div>}
               {plan !== "free" && (
                 <div style={{ background:`linear-gradient(135deg,${planBadge.color}33,${planBadge.color}11)`, border:`1px solid ${planBadge.color}55`, borderRadius:12, padding:"6px 16px", display:"inline-block", marginBottom:12, fontSize:13, fontWeight:700, color:planBadge.color }}>
                   {planBadge.icon} {t[plan]} {t.active}
                 </div>
               )}
-              <div style={{ fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.6, marginBottom:14 }}>Mwen renmen lavi ak tout sa ki bèl nan li 🌈</div>
-              <div style={{ display:"flex", flexWrap:"wrap", gap:6, justifyContent:"center" }}>
-                {["Mizik 🎵","Vwayaj ✈️","Spò ⚽"].map((x,i) => (
-                  <span key={i} style={{ background:"rgba(255,59,92,0.2)", border:"1px solid rgba(255,59,92,0.3)", borderRadius:20, padding:"3px 10px", fontSize:11 }}>{x}</span>
-                ))}
-              </div>
+              {user?.interests?.length > 0 && (
+                <div style={{ display:"flex", flexWrap:"wrap", gap:6, justifyContent:"center" }}>
+                  {user.interests.map((x,i) => (
+                    <span key={i} style={{ background:"rgba(255,59,92,0.2)", border:"1px solid rgba(255,59,92,0.3)", borderRadius:20, padding:"3px 10px", fontSize:11 }}>{x}</span>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* SUBSCRIPTION SECTION */}
+            {/* SUBSCRIPTION */}
             <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:20, padding:20, marginBottom:16 }}>
               <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.4)", letterSpacing:1, textTransform:"uppercase", marginBottom:14 }}>{t.currentPlan}</div>
               <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14 }}>
@@ -1006,25 +1019,129 @@ export default function TiKeke() {
                   <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)" }}>{t[plan+"Sub"]}</div>
                 </div>
               </div>
-              <button onClick={() => { setShowPaywall(true); setPayStep("plans"); }} style={{
-                width:"100%", padding:"13px", borderRadius:14, border:"none", cursor:"pointer",
-                background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:15, fontWeight:700,
-              }}>{plan==="free" ? t.unlock : t.upgrade} 💎</button>
+              <button onClick={() => { setShowPaywall(true); setPayStep("plans"); }} style={{ width:"100%", padding:"13px", borderRadius:14, border:"none", cursor:"pointer", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:15, fontWeight:700 }}>
+                {plan==="free" ? t.unlock : t.upgrade} 💎
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── SETTINGS ── */}
+        {tab === "profile" && showSettings && (
+          <div style={{ padding:"0 0 40px" }}>
+            {/* Header */}
+            <div style={{ display:"flex", alignItems:"center", gap:12, padding:"16px 20px", borderBottom:"1px solid rgba(255,255,255,0.08)" }}>
+              <span onClick={() => setShowSettings(false)} style={{ fontSize:22, cursor:"pointer", color:"#FF3B5C" }}>←</span>
+              <div style={{ fontSize:18, fontWeight:800 }}>⚙️ Paramèt</div>
             </div>
 
-            {/* LANG */}
-            <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:20, padding:20 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.4)", letterSpacing:1, textTransform:"uppercase", marginBottom:14 }}>{t.lang}</div>
-              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                {langList.map(([code,label]) => (
-                  <div key={code} onClick={() => setLang(code)} style={{
-                    flex:1, minWidth:80, textAlign:"center", padding:"10px 6px", borderRadius:14, fontSize:12, cursor:"pointer",
-                    background: lang===code ? "linear-gradient(135deg,#FF3B5C,#A855F7)" : "rgba(255,255,255,0.06)",
-                    border: lang===code ? "none" : "1px solid rgba(255,255,255,0.1)",
-                    fontWeight: lang===code ? 700 : 400,
-                  }}>{label}</div>
+            {/* ACCOUNT SECTION */}
+            <div style={{ padding:"20px 20px 0" }}>
+              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>👤 Kont</div>
+              <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
+                {[
+                  { icon:"✏️", label:"Modifye Pwofil", action: () => { const u = {...user, profileComplete:false}; setUser(u); localStorage.setItem("tikeke_user", JSON.stringify(u)); setShowSettings(false); } },
+                  { icon:"📸", label:"Chanje Foto", action: () => document.getElementById("settingsPhotoInput").click() },
+                  { icon:"🔗", label:"Pataje Pwofil", action: () => { navigator.share ? navigator.share({title:"Ti Kèkè", text:"Jwenn mwen sou Ti Kèkè!", url:"https://ti-keke.vercel.app"}) : alert("Kopi lyen: ti-keke.vercel.app"); } },
+                ].map((item, i, arr) => (
+                  <div key={i} onClick={item.action} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
+                    <span style={{ fontSize:20 }}>{item.icon}</span>
+                    <div style={{ flex:1, fontSize:15 }}>{item.label}</div>
+                    <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
+                  </div>
+                ))}
+                <input id="settingsPhotoInput" type="file" accept="image/*" style={{ display:"none" }} onChange={async (e) => {
+                  const file = e.target.files[0]; if (!file) return;
+                  try {
+                    const fd = new FormData(); fd.append("file", file); fd.append("upload_preset", "tikeke_profiles"); fd.append("cloud_name", "lu0hry6w");
+                    const res = await fetch("https://api.cloudinary.com/v1_1/lu0hry6w/image/upload", { method:"POST", body:fd });
+                    const data = await res.json();
+                    if (data.secure_url) { const u = {...user, photoUrl: data.secure_url}; setUser(u); localStorage.setItem("tikeke_user", JSON.stringify(u)); alert("✅ Foto chanje!"); }
+                  } catch(e) { alert("Erè — eseye ankò"); }
+                }} />
+              </div>
+
+              {/* PRIVACY */}
+              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🔒 Konfidansyalite</div>
+              <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
+                {[
+                  { icon:"👁️", label:"Vizibilite Pwofil", sub:"Tout moun ka wè ou" },
+                  { icon:"🚫", label:"Bloke yon moun", sub:"Jere lis moun bloke" },
+                  { icon:"📍", label:"Lokasyon", sub:"Aktivè pou wè moun pre w" },
+                ].map((item, i, arr) => (
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
+                    <span style={{ fontSize:20 }}>{item.icon}</span>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:15 }}>{item.label}</div>
+                      <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{item.sub}</div>
+                    </div>
+                    <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
+                  </div>
                 ))}
               </div>
+
+              {/* LANGUAGE */}
+              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🌍 Lang</div>
+              <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, padding:16, marginBottom:16 }}>
+                <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                  {langList.map(([code,label]) => (
+                    <div key={code} onClick={() => setLang(code)} style={{ flex:1, minWidth:80, textAlign:"center", padding:"10px 6px", borderRadius:14, fontSize:12, cursor:"pointer", background:lang===code?"linear-gradient(135deg,#FF3B5C,#A855F7)":"rgba(255,255,255,0.06)", fontWeight:lang===code?700:400 }}>{label}</div>
+                  ))}
+                </div>
+              </div>
+
+              {/* LEGAL */}
+              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>📋 Legal</div>
+              <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
+                {[
+                  { icon:"🔐", label:"Privacy Policy", sub:"Kijan nou pwoteje done w" },
+                  { icon:"🇪🇺", label:"GDPR", sub:"Dwa sou done pèsonèl ou" },
+                  { icon:"📄", label:"Kondisyon Itilizasyon", sub:"Règ Ti Kèkè" },
+                  { icon:"🍪", label:"Cookies", sub:"Politik cookies nou" },
+                ].map((item, i, arr) => (
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
+                    <span style={{ fontSize:20 }}>{item.icon}</span>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:15 }}>{item.label}</div>
+                      <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{item.sub}</div>
+                    </div>
+                    <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* SUPPORT */}
+              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>💬 Sipò</div>
+              <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
+                {[
+                  { icon:"❓", label:"Èd / FAQ", sub:"Kesyon souvan poze" },
+                  { icon:"📧", label:"Kontakte Nou", sub:"support@tikeke.com" },
+                  { icon:"⭐", label:"Evalye App la", sub:"Ban nou yon avis" },
+                ].map((item, i, arr) => (
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
+                    <span style={{ fontSize:20 }}>{item.icon}</span>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:15 }}>{item.label}</div>
+                      <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{item.sub}</div>
+                    </div>
+                    <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* LOGOUT & DELETE */}
+              <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:32 }}>
+                <div onClick={handleLogout} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom:"1px solid rgba(255,255,255,0.06)", cursor:"pointer" }}>
+                  <span style={{ fontSize:20 }}>🚪</span>
+                  <div style={{ flex:1, fontSize:15 }}>Dekonekte</div>
+                </div>
+                <div onClick={() => { if(window.confirm("Ou sèten ou vle siprime kont ou?")) { handleLogout(); }}} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", cursor:"pointer" }}>
+                  <span style={{ fontSize:20 }}>🗑️</span>
+                  <div style={{ flex:1, fontSize:15, color:"#FF3B5C" }}>Siprime Kont</div>
+                </div>
+              </div>
+
+              <div style={{ textAlign:"center", fontSize:11, color:"rgba(255,255,255,0.2)", marginBottom:20 }}>Ti Kèkè v1.0 · Made with 💕</div>
             </div>
           </div>
         )}
