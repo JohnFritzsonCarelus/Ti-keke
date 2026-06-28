@@ -81,15 +81,22 @@ async function loadUserProfile(uid, idToken) {
 
 // ── CLOUDINARY PHOTO UPLOAD ─────────────────────────────────
 async function uploadPhoto(file) {
+  // Convert to base64 first (works better on mobile/iOS)
+  const base64 = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
   const fd = new FormData();
-  fd.append("file", file);
+  fd.append("file", base64);
   fd.append("upload_preset", "tikeke_profiles");
   const res = await fetch("https://api.cloudinary.com/v1_1/lu0hry6w/image/upload", {
     method: "POST",
     body: fd
   });
   const data = await res.json();
-  if (!data.secure_url) throw new Error("Upload echwe");
+  if (!data.secure_url) throw new Error(data.error?.message || "Upload echwe");
   return data.secure_url;
 }
 
