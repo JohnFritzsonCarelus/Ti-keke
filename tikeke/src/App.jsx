@@ -2,9 +2,34 @@ import { useState, useEffect, useRef } from "react";
 
 const FIREBASE_DB_URL = "https://tikeke-a91b8-default-rtdb.firebaseio.com";
 const FIRESTORE_URL = "https://firestore.googleapis.com/v1/projects/tikeke-a91b8/databases/(default)/documents";
+const FIREBASE_API_KEY = "AIzaSyC8sC0fiGwOAZXMTph5EHAwlTF8PANnkwU";
+const FIREBASE_AUTH_URL = "https://identitytoolkit.googleapis.com/v1/accounts";
 
-// Save user profile to Firestore
-async function saveUserProfile(userData) {
+// ── FIREBASE AUTH REST ──────────────────────────────────────
+async function firebaseSignUp(email, password) {
+  const res = await fetch(`${FIREBASE_AUTH_URL}:signUp?key=${FIREBASE_API_KEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, returnSecureToken: true })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data; // { idToken, localId, email, ... }
+}
+
+async function firebaseSignIn(email, password) {
+  const res = await fetch(`${FIREBASE_AUTH_URL}:signInWithPassword?key=${FIREBASE_API_KEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, returnSecureToken: true })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data; // { idToken, localId, email, ... }
+}
+
+// ── FIRESTORE ───────────────────────────────────────────────
+async function saveUserProfile(userData, idToken) {
   try {
     const fields = {};
     Object.entries(userData).forEach(([k, v]) => {
@@ -14,30 +39,47 @@ async function saveUserProfile(userData) {
       else if (typeof v === "boolean") fields[k] = { booleanValue: v };
       else if (Array.isArray(v)) fields[k] = { arrayValue: { values: v.map(i => ({ stringValue: String(i) })) } };
     });
+    const headers = { "Content-Type": "application/json" };
+    if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
     await fetch(`${FIRESTORE_URL}/users/${userData.uid}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ fields })
     });
   } catch(e) { console.log("Firestore save error:", e); }
 }
 
-// Load user profile from Firestore
-async function loadUserProfile(uid) {
+async function loadUserProfile(uid, idToken) {
   try {
-    const res = await fetch(`${FIRESTORE_URL}/users/${uid}`);
+    const headers = {};
+    if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
+    const res = await fetch(`${FIRESTORE_URL}/users/${uid}`, { headers });
     if (!res.ok) return null;
     const data = await res.json();
     if (!data.fields) return null;
     const user = {};
     Object.entries(data.fields).forEach(([k, v]) => {
       if (v.stringValue !== undefined) user[k] = v.stringValue;
-      else if (v.integerValue !== undefined) user[k] = v.integerValue;
+      else if (v.integerValue !== undefined) user[k] = Number(v.integerValue);
       else if (v.booleanValue !== undefined) user[k] = v.booleanValue;
       else if (v.arrayValue) user[k] = (v.arrayValue.values || []).map(i => i.stringValue || "");
     });
     return user;
   } catch(e) { return null; }
+}
+
+// ── CLOUDINARY PHOTO UPLOAD ─────────────────────────────────
+async function uploadPhoto(file) {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("upload_preset", "tikeke_profiles");
+  const res = await fetch("https://api.cloudinary.com/v1_1/lu0hry6w/image/upload", {
+    method: "POST",
+    body: fd
+  });
+  const data = await res.json();
+  if (!data.secure_url) throw new Error("Upload echwe");
+  return data.secure_url;
 }
 
 const translations = {
@@ -224,35 +266,38 @@ export default function TiKeke() {
   const [authPopupMsg, setAuthPopupMsg] = useState("");
   const [showSettings, setShowSettings] = useState(false);
 
+  // Restore session from localStorage (idToken + uid saved)
   useEffect(() => {
     async function loadSession() {
-      const saved = localStorage.getItem("tikeke_user");
-      if (saved) {
-        const localData = JSON.parse(saved);
-        setUser(localData);
-        // Try to get fresh data from Firestore
-        if (localData.uid) {
-          const fresh = await loadUserProfile(localData.uid);
-          if (fresh) {
-            const merged = {...localData, ...fresh};
-            setUser(merged);
-            localStorage.setItem("tikeke_user", JSON.stringify(merged));
-            if (merged.profileComplete === "true" || merged.profileComplete === true) {
-              setSetupData({
-                name: merged.name || "",
-                age: merged.age || "",
-                gender: merged.gender || "",
-                country: merged.country || "",
-                city: merged.city || "",
-                bio: merged.bio || "",
-                avatar: merged.avatar || "🧑🏾",
-                photos: merged.photos || [],
-                photoUrl: merged.photoUrl || null,
-                interests: merged.interests || []
-              });
-            }
+      const saved = localStorage.getItem("tikeke_session");
+      if (!saved) return;
+      try {
+        const session = JSON.parse(saved);
+        if (!session.uid || !session.idToken) return;
+        // Load full profile from Firestore
+        const profile = await loadUserProfile(session.uid, session.idToken);
+        if (profile) {
+          const merged = { ...session, ...profile };
+          setUser(merged);
+          if (merged.profileComplete === true || merged.profileComplete === "true") {
+            setSetupData({
+              name: merged.name || "",
+              age: merged.age || "",
+              gender: merged.gender || "",
+              country: merged.country || "",
+              city: merged.city || "",
+              bio: merged.bio || "",
+              avatar: merged.avatar || "🧑🏾",
+              photos: Array.isArray(merged.photos) ? merged.photos : [],
+              photoUrl: merged.photoUrl || null,
+              interests: Array.isArray(merged.interests) ? merged.interests : []
+            });
           }
+        } else {
+          setUser(session);
         }
+      } catch(e) {
+        localStorage.removeItem("tikeke_session");
       }
     }
     loadSession();
@@ -267,54 +312,64 @@ export default function TiKeke() {
       setAuthError("Modpas twò kout (min 6 karaktè)"); setAuthLoading(false); return;
     }
     try {
-      // Create unique uid from email
-      const uid = btoa(authEmail).replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
-      
-      // Try to load existing profile from Firestore
-      const existing = await loadUserProfile(uid);
-      
-      if (existing && existing.email === authEmail) {
-        // Existing user — load their data
-        setUser(existing);
-        localStorage.setItem("tikeke_user", JSON.stringify(existing));
-        if (existing.profileComplete === "true" || existing.profileComplete === true) {
-          setSetupData({
-            name: existing.name || "",
-            age: existing.age || "",
-            gender: existing.gender || "",
-            country: existing.country || "",
-            city: existing.city || "",
-            bio: existing.bio || "",
-            avatar: existing.avatar || "🧑🏾",
-            photos: existing.photos || [],
-            photoUrl: existing.photoUrl || null,
-            interests: existing.interests || []
-          });
-        }
+      let authData;
+      if (authMode === "register") {
+        authData = await firebaseSignUp(authEmail, authPass);
       } else {
-        // New user
-        const userData = { 
-          email: authEmail, 
-          name: authName || authEmail.split("@")[0], 
-          uid, 
+        authData = await firebaseSignIn(authEmail, authPass);
+      }
+
+      const { idToken, localId: uid, email } = authData;
+      const session = { uid, idToken, email };
+      localStorage.setItem("tikeke_session", JSON.stringify(session));
+
+      // Load existing profile from Firestore
+      const profile = await loadUserProfile(uid, idToken);
+
+      if (profile && (profile.profileComplete === true || profile.profileComplete === "true")) {
+        const merged = { ...session, ...profile };
+        setUser(merged);
+        setSetupData({
+          name: merged.name || "",
+          age: merged.age || "",
+          gender: merged.gender || "",
+          country: merged.country || "",
+          city: merged.city || "",
+          bio: merged.bio || "",
+          avatar: merged.avatar || "🧑🏾",
+          photos: Array.isArray(merged.photos) ? merged.photos : [],
+          photoUrl: merged.photoUrl || null,
+          interests: Array.isArray(merged.interests) ? merged.interests : []
+        });
+      } else {
+        // New user or incomplete profile
+        const userData = {
+          ...session,
+          name: authName || email.split("@")[0],
           profileComplete: false,
           createdAt: new Date().toISOString()
         };
-        await saveUserProfile(userData);
+        if (profile) Object.assign(userData, profile);
+        await saveUserProfile(userData, idToken);
         setUser(userData);
-        localStorage.setItem("tikeke_user", JSON.stringify(userData));
-        setSetupData(p => ({...p, name: authName || authEmail.split("@")[0]}));
+        setSetupData(p => ({ ...p, name: authName || email.split("@")[0] }));
       }
       setShowAuthPopup(false);
     } catch(e) {
-      setAuthError("Erè — eseye ankò");
+      const msg = e.message || "";
+      if (msg.includes("EMAIL_EXISTS")) setAuthError("Imel sa deja itilize!");
+      else if (msg.includes("INVALID_PASSWORD") || msg.includes("INVALID_LOGIN_CREDENTIALS")) setAuthError("Modpas oswa imel pa kòrèk");
+      else if (msg.includes("USER_NOT_FOUND")) setAuthError("Kont sa pa egziste — kreye youn!");
+      else if (msg.includes("WEAK_PASSWORD")) setAuthError("Modpas twò fèb (min 6 karaktè)");
+      else setAuthError("Erè — eseye ankò");
     }
     setAuthLoading(false);
   }
 
   function handleLogout() {
-    localStorage.removeItem("tikeke_user");
+    localStorage.removeItem("tikeke_session");
     setUser(null);
+    setSetupData({ name:"", age:"", gender:"", country:"", city:"", bio:"", avatar:"🧑🏾", interests:[], photos:[] });
   }
 
   // PAYWALL STATE
@@ -552,8 +607,9 @@ export default function TiKeke() {
               profileComplete: true
             };
             setUser(updated);
-            localStorage.setItem("tikeke_user", JSON.stringify(updated));
-            saveUserProfile(updated);
+            const session = JSON.parse(localStorage.getItem("tikeke_session") || "{}");
+            localStorage.setItem("tikeke_session", JSON.stringify({...session, ...updated}));
+            saveUserProfile(updated, user?.idToken);
           }} style={{ width:"100%", padding:"16px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer" }}>
             💕 Kòmanse Ti Kèkè!
           </button>
@@ -1059,7 +1115,7 @@ export default function TiKeke() {
               <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>👤 Kont</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 {[
-                  { icon:"✏️", label:"Modifye Pwofil", action: () => { const u = {...user, profileComplete:false}; setUser(u); localStorage.setItem("tikeke_user", JSON.stringify(u)); setShowSettings(false); } },
+                  { icon:"✏️", label:"Modifye Pwofil", action: () => { const u = {...user, profileComplete:false}; setUser(u); const s = JSON.parse(localStorage.getItem("tikeke_session")||"{}"); localStorage.setItem("tikeke_session", JSON.stringify({...s, profileComplete:false})); setShowSettings(false); } },
                   { icon:"📸", label:"Chanje Foto", action: () => document.getElementById("settingsPhotoInput").click() },
                   { icon:"🔗", label:"Pataje Pwofil", action: () => { navigator.share ? navigator.share({title:"Ti Kèkè", text:"Jwenn mwen sou Ti Kèkè!", url:"https://ti-keke.vercel.app"}) : alert("Kopi lyen: ti-keke.vercel.app"); } },
                 ].map((item, i, arr) => (
@@ -1072,11 +1128,14 @@ export default function TiKeke() {
                 <input id="settingsPhotoInput" type="file" accept="image/*" style={{ display:"none" }} onChange={async (e) => {
                   const file = e.target.files[0]; if (!file) return;
                   try {
-                    const fd = new FormData(); fd.append("file", file); fd.append("upload_preset", "tikeke_profiles"); fd.append("cloud_name", "lu0hry6w");
-                    const res = await fetch("https://api.cloudinary.com/v1_1/lu0hry6w/image/upload", { method:"POST", body:fd });
-                    const data = await res.json();
-                    if (data.secure_url) { const u = {...user, photoUrl: data.secure_url}; setUser(u); localStorage.setItem("tikeke_user", JSON.stringify(u)); alert("✅ Foto chanje!"); }
-                  } catch(e) { alert("Erè — eseye ankò"); }
+                    const url = await uploadPhoto(file);
+                    const u = {...user, photoUrl: url, photos: [url, ...(user.photos||[]).slice(1)]};
+                    setUser(u);
+                    const s = JSON.parse(localStorage.getItem("tikeke_session")||"{}");
+                    localStorage.setItem("tikeke_session", JSON.stringify({...s, photoUrl: url}));
+                    saveUserProfile(u, user?.idToken);
+                    alert("✅ Foto chanje!");
+                  } catch(e) { alert("Erè telechajman foto — eseye ankò"); }
                 }} />
               </div>
 
