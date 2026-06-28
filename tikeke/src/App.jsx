@@ -4,6 +4,7 @@ const FIREBASE_DB_URL = "https://tikeke-a91b8-default-rtdb.firebaseio.com";
 const FIRESTORE_URL = "https://firestore.googleapis.com/v1/projects/tikeke-a91b8/databases/(default)/documents";
 const FIREBASE_API_KEY = "AIzaSyC8sC0fiGwOAZXMTph5EHAwlTF8PANnkwU";
 const FIREBASE_AUTH_URL = "https://identitytoolkit.googleapis.com/v1/accounts";
+const PAYPAL_CLIENT_ID = "AQ8vWtSeGLcJf5bno8_ADrU7YE2J6SwWCx-zfStbXqYRufaOzB7aEEcWvfRSGIxiIaY8Uwcz8Rgnu-Mv";
 
 // ── FIREBASE AUTH REST ──────────────────────────────────────
 async function firebaseSignUp(email, password) {
@@ -295,6 +296,7 @@ export default function TiKeke() {
   const [notifMsg, setNotifMsg] = useState(true);
   const [notifSuperLike, setNotifSuperLike] = useState(true);
   const [legalPage, setLegalPage] = useState(null);
+  const [paypalLoaded, setPaypalLoaded] = useState(false);
 
   // Restore session from localStorage (idToken + uid saved)
   useEffect(() => {
@@ -499,6 +501,43 @@ export default function TiKeke() {
     setFormData({ cardNum:"", expiry:"", cvv:"", phone:"", email:"" });
   }
 
+
+  // ── PAYPAL SDK ──
+  useEffect(() => {
+    if (payMethod !== "paypal" || !selectedPlan) return;
+    setPaypalLoaded(false);
+    // Remove existing PayPal script
+    const existing = document.getElementById("paypal-sdk");
+    if (existing) existing.remove();
+    // Load PayPal SDK
+    const script = document.createElement("script");
+    script.id = "paypal-sdk";
+    script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD`;
+    script.onload = () => {
+      setPaypalLoaded(true);
+      setTimeout(() => {
+        const container = document.getElementById("paypal-button-container");
+        if (!container || !window.paypal) return;
+        container.innerHTML = "";
+        window.paypal.Buttons({
+          createOrder: (data, actions) => {
+            return actions.order.create({
+              purchase_units: [{ amount: { value: String(selectedPlan.price), currency_code: "USD" }, description: `Ti Kèkè ${selectedPlan.key} Plan` }]
+            });
+          },
+          onApprove: (data, actions) => {
+            return actions.order.capture().then(() => {
+              setPlan(selectedPlan.key);
+              setPayStep("success");
+            });
+          },
+          onError: (err) => { alert("Erè PayPal — eseye ankò"); },
+          style: { layout: "vertical", color: "blue", shape: "pill", label: "pay" }
+        }).render("#paypal-button-container");
+      }, 300);
+    };
+    document.body.appendChild(script);
+  }, [payMethod, selectedPlan]);
 
   // ── REALTIME CHAT ──
   useEffect(() => {
@@ -816,23 +855,24 @@ export default function TiKeke() {
                 <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
                   <div style={{ background:"linear-gradient(135deg,#003087,#009CDE)", borderRadius:16, padding:"16px", textAlign:"center", marginBottom:4 }}>
                     <div style={{ fontSize:32 }}>🅿️</div>
-                    <div style={{ fontWeight:800, fontSize:15, marginTop:4 }}>PayPal</div>
-                    <div style={{ fontSize:12, color:"rgba(255,255,255,0.7)", marginTop:2 }}>tikeke@paypal.com</div>
+                    <div style={{ fontWeight:800, fontSize:15, marginTop:4 }}>PayPal — Peman Sekirize</div>
+                    <div style={{ fontSize:12, color:"rgba(255,255,255,0.7)", marginTop:2 }}>${selectedPlan?.price}/mwa</div>
                   </div>
-                  <input style={inputStyle} placeholder={t.email} type="email"
-                    value={formData.email}
-                    onChange={e => setFormData(f => ({ ...f, email: e.target.value }))} />
+                  <div id="paypal-button-container" style={{ minHeight:50 }}></div>
+                  {!paypalLoaded && <div style={{ textAlign:"center", color:"rgba(255,255,255,0.4)", fontSize:13 }}>⏳ Ap chaje PayPal...</div>}
                 </div>
               )}
 
-              <button onClick={confirmPay} disabled={paying} style={{
-                width:"100%", marginTop:24, padding:"16px", borderRadius:16, border:"none", cursor:"pointer",
-                background: paying ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg,#FF3B5C,#A855F7)",
-                color:"#fff", fontSize:16, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", gap:10,
-                transition:"opacity 0.2s",
-              }}>
-                {paying ? <><span style={{ fontSize:20 }}>⏳</span> Processing...</> : <><span>🔒</span> {t.confirm} — ${selectedPlan.price}</>}
-              </button>
+              {payMethod !== "paypal" && (
+                <button onClick={confirmPay} disabled={paying} style={{
+                  width:"100%", marginTop:24, padding:"16px", borderRadius:16, border:"none", cursor:"pointer",
+                  background: paying ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg,#FF3B5C,#A855F7)",
+                  color:"#fff", fontSize:16, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", gap:10,
+                  transition:"opacity 0.2s",
+                }}>
+                  {paying ? <><span style={{ fontSize:20 }}>⏳</span> Processing...</> : <><span>🔒</span> {t.confirm} — ${selectedPlan.price}</>}
+                </button>
+              )}
               <div style={{ textAlign:"center", fontSize:11, color:"rgba(255,255,255,0.25)", marginTop:10 }}>🔐 Peman Sekirize · SSL Encrypted</div>
             </div>
           )}
