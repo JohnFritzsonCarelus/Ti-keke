@@ -291,6 +291,9 @@ export default function TiKeke() {
   const [showRating, setShowRating] = useState(false);
   const [rating, setRating] = useState(0);
   const [ratingMsg, setRatingMsg] = useState("");
+  const [notifMatch, setNotifMatch] = useState(true);
+  const [notifMsg, setNotifMsg] = useState(true);
+  const [notifSuperLike, setNotifSuperLike] = useState(true);
 
   // Restore session from localStorage (idToken + uid saved)
   useEffect(() => {
@@ -1297,16 +1300,62 @@ export default function TiKeke() {
                 </div>
               )}
 
+              {/* NOTIFIKASYON */}
+              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🔔 Notifikasyon</div>
+              <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
+                {[
+                  { label:"Nouvo Matche", val: notifMatch, set: setNotifMatch },
+                  { label:"Nouvo Mesaj", val: notifMsg, set: setNotifMsg },
+                  { label:"Super Like", val: notifSuperLike, set: setNotifSuperLike },
+                ].map((item, i, arr) => (
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+                    <div style={{ flex:1, fontSize:15 }}>🔔 {item.label}</div>
+                    <div onClick={() => item.set(v => !v)} style={{ width:44, height:24, borderRadius:12, background: item.val ? "linear-gradient(135deg,#FF3B5C,#A855F7)" : "rgba(255,255,255,0.15)", position:"relative", cursor:"pointer", transition:"background 0.2s" }}>
+                      <div style={{ position:"absolute", top:3, left: item.val ? 22 : 3, width:18, height:18, borderRadius:"50%", background:"#fff", transition:"left 0.2s" }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* CHANJE MODPAS */}
+              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🔒 Sekirite</div>
+              <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
+                <div onClick={async () => {
+                  if (!user?.email) { alert("Ou pa konekte!"); return; }
+                  try {
+                    await firebaseResetPassword(user.email);
+                    alert("✅ Nou voye yon imel pou chanje modpas ou nan " + user.email);
+                  } catch(e) { alert("Erè — eseye ankò"); }
+                }} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", cursor:"pointer" }}>
+                  <span style={{ fontSize:20 }}>🔑</span>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:15 }}>Chanje Modpas</div>
+                    <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:2 }}>Nou ap voye yon imel ba ou</div>
+                  </div>
+                  <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
+                </div>
+              </div>
+
               {/* LOGOUT & DELETE */}
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:32 }}>
-                <div onClick={handleLogout} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom:"1px solid rgba(255,255,255,0.06)", cursor:"pointer" }}>
-                  <span style={{ fontSize:20 }}>🚪</span>
-                  <div style={{ flex:1, fontSize:15 }}>Dekonekte</div>
-                </div>
-                <div onClick={() => { if(window.confirm("Ou sèten ou vle siprime kont ou?")) { handleLogout(); }}} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", cursor:"pointer" }}>
-                  <span style={{ fontSize:20 }}>🗑️</span>
-                  <div style={{ flex:1, fontSize:15, color:"#FF3B5C" }}>Siprime Kont</div>
-                </div>
+                {user ? (
+                  <>
+                    <div onClick={handleLogout} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom:"1px solid rgba(255,255,255,0.06)", cursor:"pointer" }}>
+                      <span style={{ fontSize:20 }}>🚪</span>
+                      <div style={{ flex:1, fontSize:15 }}>Dekonekte</div>
+                    </div>
+                    <div onClick={() => { if(window.confirm("Ou sèten ou vle siprime kont ou? Tout done ou ap efase pou toujou.")) { handleLogout(); }}} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", cursor:"pointer" }}>
+                      <span style={{ fontSize:20 }}>🗑️</span>
+                      <div style={{ flex:1, fontSize:15, color:"#FF3B5C" }}>Siprime Kont</div>
+                    </div>
+                  </>
+                ) : (
+                  <div onClick={() => { setAuthMode("choice"); setShowAuthPopup(true); setShowSettings(false); }} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", cursor:"pointer" }}>
+                    <span style={{ fontSize:20 }}>🔑</span>
+                    <div style={{ flex:1, fontSize:15, color:"#FF3B5C", fontWeight:700 }}>Konekte / Kreye Kont</div>
+                    <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
+                  </div>
+                )}
               </div>
 
               <div style={{ textAlign:"center", fontSize:11, color:"rgba(255,255,255,0.2)", marginBottom:20 }}>Ti Kèkè v1.0 · Made with 💕</div>
