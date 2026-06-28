@@ -28,6 +28,17 @@ async function firebaseSignIn(email, password) {
   return data; // { idToken, localId, email, ... }
 }
 
+async function firebaseResetPassword(email) {
+  const res = await fetch(`${FIREBASE_AUTH_URL}:sendOobCode?key=${FIREBASE_API_KEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ requestType: "PASSWORD_RESET", email })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data;
+}
+
 // ── FIRESTORE ───────────────────────────────────────────────
 async function saveUserProfile(userData, idToken) {
   try {
@@ -1269,6 +1280,17 @@ export default function TiKeke() {
                 <button onClick={handleAuth} disabled={authLoading} style={{ width:"100%", padding:"14px", borderRadius:14, border:"none", background:authLoading?"rgba(255,255,255,0.1)":"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
                   {authLoading ? "⏳ ..." : (authMode==="login" ? "🔑 Konekte" : "✨ Kreye Kont")}
                 </button>
+                {authMode==="login" && (
+                  <div onClick={async () => {
+                    if (!authEmail.includes("@")) { setAuthError("Mete imel ou anvan"); return; }
+                    try {
+                      await firebaseResetPassword(authEmail);
+                      setAuthError("✅ Nou voye yon imel pou chanje modpas ou!");
+                    } catch(e) { setAuthError("Imel sa pa egziste"); }
+                  }} style={{ textAlign:"center", fontSize:13, color:"#A855F7", cursor:"pointer", marginBottom:12, marginTop:-4 }}>
+                    🔑 Ou bliye modpas ou?
+                  </div>
+                )}
                 <div style={{ textAlign:"center", fontSize:13, color:"rgba(255,255,255,0.4)" }}>
                   {authMode==="login" ? "Ou pa gen kont?" : "Ou deja gen kont?"}{" "}
                   <span onClick={() => { setAuthMode(authMode==="login"?"register":"login"); setAuthError(""); }} style={{ color:"#FF3B5C", cursor:"pointer", fontWeight:700 }}>
