@@ -294,6 +294,7 @@ export default function TiKeke() {
   const [notifMatch, setNotifMatch] = useState(true);
   const [notifMsg, setNotifMsg] = useState(true);
   const [notifSuperLike, setNotifSuperLike] = useState(true);
+  const [legalPage, setLegalPage] = useState(null);
 
   // Restore session from localStorage (idToken + uid saved)
   useEffect(() => {
@@ -472,6 +473,16 @@ export default function TiKeke() {
   }
 
   function confirmPay() {
+    // Verifye si enfòmasyon peman an ranpli
+    if (payMethod === "card") {
+      if (formData.cardNum.replace(/ /g,"").length < 16) { alert("Mete nimewo kat konplè!"); return; }
+      if (formData.expiry.length < 5) { alert("Mete dat ekspire!"); return; }
+      if (formData.cvv.length < 3) { alert("Mete CVV!"); return; }
+    } else if (payMethod === "moncash" || payMethod === "natcash") {
+      if (!formData.phone || formData.phone.length < 8) { alert("Mete nimewo telefòn ou!"); return; }
+    } else if (payMethod === "paypal") {
+      if (!formData.email || !formData.email.includes("@")) { alert("Mete imel PayPal ou!"); return; }
+    }
     setPaying(true);
     setTimeout(() => {
       setPaying(false);
@@ -695,7 +706,7 @@ export default function TiKeke() {
                   position:"relative", transition:"all 0.2s",
                 }}>
                   {p.popular && <div style={{ position:"absolute", top:-10, right:16, background:`linear-gradient(90deg,#FF3B5C,#A855F7)`, borderRadius:20, padding:"2px 12px", fontSize:10, fontWeight:700 }}>⭐ POPULAR</div>}
-                  {plan===p.key && <div style={{ position:"absolute", top:12, right:16, fontSize:11, color:"#22C55E", fontWeight:700 }}>{t.active}</div>}
+                  {plan===p.key && plan!=="free" && <div style={{ position:"absolute", top:12, right:16, fontSize:11, color:"#22C55E", fontWeight:700 }}>{t.active}</div>}
                   <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                     <div style={{ fontSize:28 }}>{p.icon}</div>
                     <div style={{ flex:1 }}>
@@ -1222,12 +1233,12 @@ export default function TiKeke() {
               <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>📋 Legal</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 {[
-                  { icon:"🔐", label:"Privacy Policy", sub:"Kijan nou pwoteje done w", url:"https://ti-keke.vercel.app/privacy" },
-                  { icon:"🇪🇺", label:"GDPR", sub:"Dwa sou done pèsonèl ou", url:"https://ti-keke.vercel.app/gdpr" },
-                  { icon:"📄", label:"Kondisyon Itilizasyon", sub:"Règ Ti Kèkè", url:"https://ti-keke.vercel.app/terms" },
-                  { icon:"🍪", label:"Cookies", sub:"Politik cookies nou", url:"https://ti-keke.vercel.app/cookies" },
+                  { icon:"🔐", label:"Privacy Policy", sub:"Kijan nou pwoteje done w", content: "Ti Kèkè kolekte sèlman enfòmasyon ou bay volontèman (imel, non, foto, enterè). Nou pa janm vann done ou bay tiyès pati. Nou itilize done ou sèlman pou fè app la fonksyone epi amelyore eksperyans ou. Ou ka mande nou efase tout done ou nenpòt ki lè nan support@tikeke.com." },
+                  { icon:"🇪🇺", label:"GDPR", sub:"Dwa sou done pèsonèl ou", content: "Konfòmeman ak GDPR, ou gen dwa: aksè ak done ou, koreksyon done ou, efasman done ou (dwa bliye), opozisyon ak tretman done ou. Pou egzèse dwa sa yo, kontakte nou nan support@tikeke.com. Nou reponn nan 72 è." },
+                  { icon:"📄", label:"Kondisyon Itilizasyon", sub:"Règ Ti Kèkè", content: "1. Ou dwe gen 18 an oswa plis pou itilize Ti Kèkè.\n2. Entèdi piblie foto oswa kontni ki pa ou.\n3. Entèdi acosman, menas, oswa konpòtman abizif.\n4. Kont ki vyole règ sa yo ap siprime san avètisman.\n5. Ti Kèkè rezève dwa modifye kondisyon sa yo nenpòt ki lè." },
+                  { icon:"🍪", label:"Cookies", sub:"Politik cookies nou", content: "Ti Kèkè itilize cookies pou:\n• Kenbe sesyon ou konekte\n• Sonje preferans lang ou\n• Amelyore pèfòmans app la\n\nNou pa itilize cookies pou piblisite. Ou ka dezaktive cookies nan navigatè ou men sa ka afekte fonksyònman app la." },
                 ].map((item, i, arr) => (
-                  <div key={i} onClick={() => window.open(item.url, "_blank")} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
+                  <div key={i} onClick={() => setLegalPage(item)} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
                     <span style={{ fontSize:20 }}>{item.icon}</span>
                     <div style={{ flex:1 }}>
                       <div style={{ fontSize:15 }}>{item.label}</div>
@@ -1237,6 +1248,17 @@ export default function TiKeke() {
                   </div>
                 ))}
               </div>
+              {legalPage && (
+                <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.97)", zIndex:500, overflowY:"auto" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:12, padding:"16px 20px", borderBottom:"1px solid rgba(255,255,255,0.08)", position:"sticky", top:0, background:"#0F0F1A" }}>
+                    <span onClick={() => setLegalPage(null)} style={{ fontSize:22, cursor:"pointer", color:"#FF3B5C" }}>←</span>
+                    <div style={{ fontSize:18, fontWeight:800 }}>{legalPage.icon} {legalPage.label}</div>
+                  </div>
+                  <div style={{ padding:"24px 20px", fontSize:14, color:"rgba(255,255,255,0.8)", lineHeight:1.8, whiteSpace:"pre-line" }}>
+                    {legalPage.content}
+                  </div>
+                </div>
+              )}
 
               {/* SUPPORT */}
               <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>💬 Sipò</div>
