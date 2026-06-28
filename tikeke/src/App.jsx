@@ -576,7 +576,7 @@ export default function TiKeke() {
 
           {/* PHOTO GALLERY */}
           <div style={{ marginBottom:24 }}>
-            <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:12, letterSpacing:1, textTransform:"uppercase" }}>📸 Foto ou (premye foto = foto prensipal)</div>
+            <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:12, letterSpacing:1, textTransform:"uppercase" }}>📸 Foto ou <span style={{color:"#FF3B5C"}}>*</span> (obligatwa — premye foto = foto prensipal)</div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
               {[0,1,2,3,4,5].map(idx => {
                 const photo = (setupData.photos || [])[idx];
@@ -636,6 +636,22 @@ export default function TiKeke() {
 
             <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
               placeholder="🌍 Peyi ou (ex: Haiti, France, USA...)" value={setupData.country} onChange={e => setSetupData(p => ({...p, country: e.target.value}))} />
+            <div onClick={() => {
+              if (!navigator.geolocation) { alert("Navigatè ou pa sipòte lokasyon"); return; }
+              setSetupError("📍 Ap detekte lokasyon ou...");
+              navigator.geolocation.getCurrentPosition(async (pos) => {
+                try {
+                  const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`);
+                  const data = await res.json();
+                  const country = data.address?.country || "";
+                  const city = data.address?.city || data.address?.town || data.address?.village || data.address?.state || "";
+                  setSetupData(p => ({...p, country, city}));
+                  setSetupError("");
+                } catch(e) { setSetupError("Pa ka detekte lokasyon — mete l manyèlman"); }
+              }, () => setSetupError("Ou refize lokasyon — mete peyi ak vil manyèlman"));
+            }} style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,59,92,0.12)", border:"1px solid rgba(255,59,92,0.3)", color:"#FF3B5C", fontSize:14, fontWeight:700, cursor:"pointer", textAlign:"center" }}>
+              📍 Detekte Lokasyon Mwen Otomatikman
+            </div>
             <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
               placeholder="📍 Vil ou (ex: Port-au-Prince, Paris...)" value={setupData.city} onChange={e => setSetupData(p => ({...p, city: e.target.value}))} />
 
@@ -664,6 +680,7 @@ export default function TiKeke() {
           {setupError && <div style={{ color:"#FF3B5C", fontSize:13, marginBottom:12, textAlign:"center", padding:"8px", background:"rgba(255,59,92,0.1)", borderRadius:10 }}>{setupError}</div>}
 
           <button onClick={() => {
+            if (!setupData.photos || setupData.photos.length === 0) { setSetupError("Ou dwe mete omwen yon foto pwofil!"); return; }
             if (!setupData.name) { setSetupError("Mete non ou!"); return; }
             if (!setupData.age || setupData.age < 18) { setSetupError("Ou dwe gen 18 an oswa plis!"); return; }
             if (!setupData.country) { setSetupError("Mete peyi ou!"); return; }
