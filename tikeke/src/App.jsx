@@ -283,6 +283,14 @@ export default function TiKeke() {
   const [showAuthPopup, setShowAuthPopup] = useState(false);
   const [authPopupMsg, setAuthPopupMsg] = useState("");
   const [showSettings, setShowSettings] = useState(false);
+  const [visibility, setVisibility] = useState(true);
+  const [locationOn, setLocationOn] = useState(false);
+  const [blockedUsers, setBlockedUsers] = useState([]);
+  const [showBlocked, setShowBlocked] = useState(false);
+  const [showFAQ, setShowFAQ] = useState(false);
+  const [showRating, setShowRating] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [ratingMsg, setRatingMsg] = useState("");
 
   // Restore session from localStorage (idToken + uid saved)
   useEffect(() => {
@@ -1158,20 +1166,44 @@ export default function TiKeke() {
               <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🔒 Konfidansyalite</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 {[
-                  { icon:"👁️", label:"Vizibilite Pwofil", sub:"Tout moun ka wè ou" },
-                  { icon:"🚫", label:"Bloke yon moun", sub:"Jere lis moun bloke" },
-                  { icon:"📍", label:"Lokasyon", sub:"Aktivè pou wè moun pre w" },
+                  { icon:"👁️", label:"Vizibilite Pwofil", sub: visibility ? "Pwofil ou vizib" : "Pwofil ou kache", action: () => setVisibility(v => !v), toggle: true, val: visibility },
+                  { icon:"📍", label:"Lokasyon", sub: locationOn ? "Lokasyon aktive" : "Lokasyon dezaktive", action: () => setLocationOn(v => !v), toggle: true, val: locationOn },
+                  { icon:"🚫", label:"Moun ou bloke", sub: blockedUsers.length > 0 ? `${blockedUsers.length} moun bloke` : "Pa gen moun bloke", action: () => setShowBlocked(true) },
                 ].map((item, i, arr) => (
-                  <div key={i} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
+                  <div key={i} onClick={item.action} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
                     <span style={{ fontSize:20 }}>{item.icon}</span>
                     <div style={{ flex:1 }}>
                       <div style={{ fontSize:15 }}>{item.label}</div>
                       <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{item.sub}</div>
                     </div>
-                    <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
+                    {item.toggle
+                      ? <div style={{ width:44, height:24, borderRadius:12, background: item.val ? "linear-gradient(135deg,#FF3B5C,#A855F7)" : "rgba(255,255,255,0.15)", position:"relative", transition:"background 0.2s" }}>
+                          <div style={{ position:"absolute", top:3, left: item.val ? 22 : 3, width:18, height:18, borderRadius:"50%", background:"#fff", transition:"left 0.2s" }} />
+                        </div>
+                      : <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
+                    }
                   </div>
                 ))}
               </div>
+              {showBlocked && (
+                <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.9)", zIndex:500, display:"flex", flexDirection:"column" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:12, padding:"16px 20px", borderBottom:"1px solid rgba(255,255,255,0.08)" }}>
+                    <span onClick={() => setShowBlocked(false)} style={{ fontSize:22, cursor:"pointer", color:"#FF3B5C" }}>←</span>
+                    <div style={{ fontSize:18, fontWeight:800 }}>🚫 Moun Bloke</div>
+                  </div>
+                  <div style={{ flex:1, overflowY:"auto", padding:"20px" }}>
+                    {blockedUsers.length === 0
+                      ? <div style={{ textAlign:"center", color:"rgba(255,255,255,0.4)", marginTop:40 }}>Pa gen moun bloke</div>
+                      : blockedUsers.map((u, i) => (
+                          <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 0", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+                            <div style={{ fontSize:15 }}>{u}</div>
+                            <div onClick={() => setBlockedUsers(b => b.filter(x => x !== u))} style={{ color:"#FF3B5C", fontSize:13, cursor:"pointer", fontWeight:700 }}>Debloke</div>
+                          </div>
+                        ))
+                    }
+                  </div>
+                </div>
+              )}
 
               {/* LANGUAGE */}
               <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🌍 Lang</div>
@@ -1187,12 +1219,12 @@ export default function TiKeke() {
               <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>📋 Legal</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 {[
-                  { icon:"🔐", label:"Privacy Policy", sub:"Kijan nou pwoteje done w" },
-                  { icon:"🇪🇺", label:"GDPR", sub:"Dwa sou done pèsonèl ou" },
-                  { icon:"📄", label:"Kondisyon Itilizasyon", sub:"Règ Ti Kèkè" },
-                  { icon:"🍪", label:"Cookies", sub:"Politik cookies nou" },
+                  { icon:"🔐", label:"Privacy Policy", sub:"Kijan nou pwoteje done w", url:"https://ti-keke.vercel.app/privacy" },
+                  { icon:"🇪🇺", label:"GDPR", sub:"Dwa sou done pèsonèl ou", url:"https://ti-keke.vercel.app/gdpr" },
+                  { icon:"📄", label:"Kondisyon Itilizasyon", sub:"Règ Ti Kèkè", url:"https://ti-keke.vercel.app/terms" },
+                  { icon:"🍪", label:"Cookies", sub:"Politik cookies nou", url:"https://ti-keke.vercel.app/cookies" },
                 ].map((item, i, arr) => (
-                  <div key={i} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
+                  <div key={i} onClick={() => window.open(item.url, "_blank")} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
                     <span style={{ fontSize:20 }}>{item.icon}</span>
                     <div style={{ flex:1 }}>
                       <div style={{ fontSize:15 }}>{item.label}</div>
@@ -1207,11 +1239,11 @@ export default function TiKeke() {
               <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>💬 Sipò</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 {[
-                  { icon:"❓", label:"Èd / FAQ", sub:"Kesyon souvan poze" },
-                  { icon:"📧", label:"Kontakte Nou", sub:"support@tikeke.com" },
-                  { icon:"⭐", label:"Evalye App la", sub:"Ban nou yon avis" },
+                  { icon:"❓", label:"Èd / FAQ", sub:"Kesyon souvan poze", action: () => setShowFAQ(true) },
+                  { icon:"📧", label:"Kontakte Nou", sub:"support@tikeke.com", action: () => window.open("mailto:support@tikeke.com?subject=Ti Kèkè Support", "_blank") },
+                  { icon:"⭐", label:"Evalye App la", sub:"Ban nou yon avis", action: () => setShowRating(true) },
                 ].map((item, i, arr) => (
-                  <div key={i} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
+                  <div key={i} onClick={item.action} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
                     <span style={{ fontSize:20 }}>{item.icon}</span>
                     <div style={{ flex:1 }}>
                       <div style={{ fontSize:15 }}>{item.label}</div>
@@ -1221,6 +1253,49 @@ export default function TiKeke() {
                   </div>
                 ))}
               </div>
+              {showFAQ && (
+                <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.95)", zIndex:500, overflowY:"auto" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:12, padding:"16px 20px", borderBottom:"1px solid rgba(255,255,255,0.08)", position:"sticky", top:0, background:"rgba(0,0,0,0.95)" }}>
+                    <span onClick={() => setShowFAQ(false)} style={{ fontSize:22, cursor:"pointer", color:"#FF3B5C" }}>←</span>
+                    <div style={{ fontSize:18, fontWeight:800 }}>❓ FAQ</div>
+                  </div>
+                  <div style={{ padding:"20px" }}>
+                    {[
+                      { q:"Kijan pou chanje modpas mwen?", a:"Ale nan ekran koneksyon an epi klike 'Ou bliye modpas ou?' — nou ap voye yon imel ba ou." },
+                      { q:"Kijan matche travay?", a:"Lè ou ak yon moun tou de swipe adwat (💙), se yon matche! Ou ka kòmanse chate apre." },
+                      { q:"Kijan pou anile kont mwen?", a:"Ale nan Paramèt → Siprime Kont. Tout done ou ap efase pou toujou." },
+                      { q:"Foto mwen pa monte — kisa pou m fè?", a:"Asire foto a pa depase 10MB. Eseye yon lòt foto oswa yon lòt navigatè." },
+                      { q:"Kijan Premium travay?", a:"Ak Premium ou gen swipe ilimite, Super Like, ak chat san limit. Ou ka peye ak MonCash, NatCash, kat kredi, oswa PayPal." },
+                    ].map((item, i) => (
+                      <div key={i} style={{ marginBottom:20, background:"rgba(255,255,255,0.04)", borderRadius:16, padding:"16px 18px" }}>
+                        <div style={{ fontWeight:700, fontSize:15, marginBottom:8, color:"#FF3B5C" }}>❓ {item.q}</div>
+                        <div style={{ fontSize:13, color:"rgba(255,255,255,0.7)", lineHeight:1.6 }}>{item.a}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {showRating && (
+                <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.92)", zIndex:500, display:"flex", alignItems:"center", justifyContent:"center", padding:"0 24px" }}>
+                  <div style={{ background:"linear-gradient(160deg,#12102A,#1E0A3A)", borderRadius:28, width:"100%", maxWidth:400, padding:"32px 28px", textAlign:"center" }}>
+                    <div style={{ fontSize:52, marginBottom:12 }}>⭐</div>
+                    <div style={{ fontSize:20, fontWeight:900, marginBottom:8 }}>Evalye Ti Kèkè</div>
+                    <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:24 }}>Ki jan ou renmen app la?</div>
+                    <div style={{ display:"flex", justifyContent:"center", gap:12, marginBottom:24 }}>
+                      {[1,2,3,4,5].map(star => (
+                        <span key={star} onClick={() => setRating(star)} style={{ fontSize:36, cursor:"pointer", opacity: rating >= star ? 1 : 0.3 }}>⭐</span>
+                      ))}
+                    </div>
+                    <textarea placeholder="Di nou sa ou panse (opsyonèl)..." value={ratingMsg} onChange={e => setRatingMsg(e.target.value)}
+                      style={{ width:"100%", padding:"12px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none", resize:"none", height:80, marginBottom:16 }} />
+                    <button onClick={() => { alert("✅ Mèsi pou evalyasyon ou!"); setShowRating(false); setRating(0); setRatingMsg(""); }}
+                      style={{ width:"100%", padding:"14px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
+                      Voye Evalyasyon 💕
+                    </button>
+                    <div onClick={() => setShowRating(false)} style={{ fontSize:13, color:"rgba(255,255,255,0.3)", cursor:"pointer" }}>Anile</div>
+                  </div>
+                </div>
+              )}
 
               {/* LOGOUT & DELETE */}
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:32 }}>
