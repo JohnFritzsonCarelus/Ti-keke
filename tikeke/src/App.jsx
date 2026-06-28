@@ -532,17 +532,14 @@ export default function TiKeke() {
                       const file = e.target.files[0]; if (!file) return;
                       setPhotoUploading(true);
                       try {
-                        const fd = new FormData(); fd.append("file", file); fd.append("upload_preset", "tikeke_profiles"); fd.append("cloud_name", "lu0hry6w");
-                        const res = await fetch("https://api.cloudinary.com/v1_1/lu0hry6w/image/upload", { method:"POST", body:fd });
-                        const data = await res.json();
-                        if (data.secure_url) {
-                          setSetupData(p => {
-                            const newPhotos = [...(p.photos||[])];
-                            newPhotos[idx] = data.secure_url;
-                            return {...p, photos: newPhotos.filter(Boolean), photoUrl: newPhotos[0] || p.photoUrl};
-                          });
-                        }
-                      } catch(err) { alert("Erè — eseye ankò"); }
+                        const url = await uploadPhoto(file);
+                        setSetupData(p => {
+                          const newPhotos = [...(p.photos||[])];
+                          newPhotos[idx] = url;
+                          const filtered = newPhotos.filter(Boolean);
+                          return {...p, photos: filtered, photoUrl: filtered[0] || p.photoUrl};
+                        });
+                      } catch(err) { alert("Erè telechajman foto — eseye ankò"); }
                       setPhotoUploading(false);
                     }} />
                   </div>
