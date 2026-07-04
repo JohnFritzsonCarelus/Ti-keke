@@ -2111,8 +2111,8 @@ export default function TiKeke() {
                 }} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", cursor:"pointer" }}>
                   <span style={{ fontSize:20 }}>🔑</span>
                   <div style={{ flex:1 }}>
-                    <div style={{ fontSize:15 }}>Chanje Modpas</div>
-                    <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:2 }}>Nou ap voye yon imel ba ou</div>
+                    <div style={{ fontSize:15 }}>{t.changePassword}</div>
+                    <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{t.changePasswordSub}</div>
                   </div>
                   <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
                 </div>
