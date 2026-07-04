@@ -276,12 +276,12 @@ const PAY_METHODS = [
 ];
 
 const profiles = [
-  { id:1, name:"Naïka",    age:24, city:"Port-au-Prince", km:2,  bio:"Mwen renmen danse, vwayaje ak manje bon manje 🌺", emoji:"👩🏾", color:"#FF6B9D", interests:["Danse 💃","Vwayaj ✈️","Manje 🍽️"], online:true },
-  { id:2, name:"Chérubin", age:27, city:"Pétionville",    km:5,  bio:"Mizisyen, pwofesè, k ap chèche yon bèl konesans 🎵", emoji:"👨🏿", color:"#A855F7", interests:["Mizik 🎸","Edikasyon 📚","Spò ⚽"], online:true },
-  { id:3, name:"Roseline", age:22, city:"Cap-Haïtien",    km:12, bio:"Etidyante an medisin. Rèv mwen se ede pèp mwen 💙", emoji:"👩🏽", color:"#F97316", interests:["Medisin 🏥","Lekti 📖","Nati 🌿"], online:false },
-  { id:4, name:"Joëlson",  age:29, city:"Jacmel",         km:8,  bio:"Atisan, amoureux de la vie ak kilti Ayisyen 🎨", emoji:"👨🏾", color:"#10B981", interests:["Atizana 🎨","Kilti 🥁","Plaj 🏖️"], online:true },
-  { id:5, name:"Fabiola",  age:25, city:"Les Cayes",      km:3,  bio:"Fanm antreprenè. Mwen kreye, mwen reve, mwen rive! 🌟", emoji:"👩🏿", color:"#EC4899", interests:["Biznis 💼","Mode 👗","Jaden 🌸"], online:false },
-  { id:6, name:"Wilfried", age:31, city:"Gonaïves",       km:15, bio:"Agwonom k ap travay pou rekonstri peyi a 🌱", emoji:"👨🏽", color:"#06B6D4", interests:["Agrikilti 🌾","Anvironman 🌍","Fanmi 👨‍👩‍👧"], online:true },
+  { id:1, name:"Naïka",    age:24, city:"Port-au-Prince", km:2,  bio:"Mwen renmen danse, vwayaje ak manje bon manje 🌺", emoji:"👩🏾", color:"#FF6B9D", interests:["Danse 💃","Vwayaj ✈️","Manje 🍽️"], online:true,  verified:true,  vip:true  },
+  { id:2, name:"Chérubin", age:27, city:"Pétionville",    km:5,  bio:"Mizisyen, pwofesè, k ap chèche yon bèl konesans 🎵", emoji:"👨🏿", color:"#A855F7", interests:["Mizik 🎸","Edikasyon 📚","Spò ⚽"], online:true,  verified:true,  vip:false },
+  { id:3, name:"Roseline", age:22, city:"Cap-Haïtien",    km:12, bio:"Etidyante an medisin. Rèv mwen se ede pèp mwen 💙", emoji:"👩🏽", color:"#F97316", interests:["Medisin 🏥","Lekti 📖","Nati 🌿"], online:false, verified:false, vip:false },
+  { id:4, name:"Joëlson",  age:29, city:"Jacmel",         km:8,  bio:"Atisan, amoureux de la vie ak kilti Ayisyen 🎨", emoji:"👨🏾", color:"#10B981", interests:["Atizana 🎨","Kilti 🥁","Plaj 🏖️"], online:true,  verified:true,  vip:true  },
+  { id:5, name:"Fabiola",  age:25, city:"Les Cayes",      km:3,  bio:"Fanm antreprenè. Mwen kreye, mwen reve, mwen rive! 🌟", emoji:"👩🏿", color:"#EC4899", interests:["Biznis 💼","Mode 👗","Jaden 🌸"], online:false, verified:false, vip:false },
+  { id:6, name:"Wilfried", age:31, city:"Gonaïves",       km:15, bio:"Agwonom k ap travay pou rekonstri peyi a 🌱", emoji:"👨🏽", color:"#06B6D4", interests:["Agrikilti 🌾","Anvironman 🌍","Fanmi 👨‍👩‍👧"], online:true,  verified:true,  vip:false },
 ];
 
 const initChats = {
@@ -299,7 +299,15 @@ export default function TiKeke() {
     return map[nav] || "ht";
   });
   const [tab, setTab]             = useState("discover");
-  const [cards, setCards]         = useState(profiles);
+  const [cards, setCards]         = useState(() => {
+    // Sort by common interests with user (algorithm)
+    return [...profiles].sort((a, b) => {
+      const userInterests = ["Danse 💃","Mizik 🎸","Vwayaj ✈️"];
+      const scoreA = a.interests.filter(i => userInterests.includes(i)).length;
+      const scoreB = b.interests.filter(i => userInterests.includes(i)).length;
+      return scoreB - scoreA;
+    });
+  });
   const [matches, setMatches]     = useState([profiles[0], profiles[3]]);
   const [showMatch, setShowMatch] = useState(null);
   const [swipeDir, setSwipeDir]   = useState(null);
@@ -365,6 +373,9 @@ export default function TiKeke() {
   // Promo
   const [showPromo, setShowPromo] = useState(false);
   const [adminStats, setAdminStats] = useState({ users:0, premium:0, revenue:0, today:0 });
+  const [msgReactions, setMsgReactions] = useState({});
+  const [showReactionPicker, setShowReactionPicker] = useState(null);
+  const [superLikeAnim, setSuperLikeAnim] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [promoMsg, setPromoMsg] = useState("");
   const PROMO_CODES = { "TIKEKE50": { discount: 50, plan: "premium" }, "VIP100": { discount: 100, plan: "vip" }, "HAITI2025": { discount: 30, plan: "basic" } };
@@ -496,6 +507,7 @@ export default function TiKeke() {
       return;
     }
     if (!isPremium && dir === "super") { setShowPaywall(true); return; }
+    if (dir === "super") { setSuperLikeAnim(true); setTimeout(() => setSuperLikeAnim(false), 1000); }
     setSwipeDir(dir);
     setTimeout(() => {
       setSwipeDir(null);
@@ -1248,9 +1260,11 @@ export default function TiKeke() {
                     )}
                   </div>
                   <div style={{ padding:"24px 20px" }}>
-                    <div style={{ fontSize:26, fontWeight:900, marginBottom:4 }}>
-                      <span style={{ display:"inline-block", width:10, height:10, borderRadius:"50%", background:selectedProfile.online?"#22C55E":"#6B7280", marginRight:8, verticalAlign:"middle" }} />
+                    <div style={{ fontSize:26, fontWeight:900, marginBottom:4, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+                      <span style={{ display:"inline-block", width:10, height:10, borderRadius:"50%", background:selectedProfile.online?"#22C55E":"#6B7280", verticalAlign:"middle" }} />
                       {selectedProfile.name}, {selectedProfile.age}
+                      {selectedProfile.verified && <span style={{ background:"#3B82F6", color:"#fff", fontSize:11, fontWeight:800, padding:"2px 8px", borderRadius:8 }}>✓ Verifye</span>}
+                      {(selectedProfile.vip || selectedProfile.premium) && <span style={{ background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:11, fontWeight:800, padding:"2px 8px", borderRadius:8 }}>✨ VIP</span>}
                     </div>
                     <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>📍 {selectedProfile.city} · {selectedProfile.km} km</div>
                     <div style={{ fontSize:14, color:"rgba(255,255,255,0.75)", lineHeight:1.6, marginBottom:16 }}>{selectedProfile.bio}</div>
@@ -1313,14 +1327,34 @@ export default function TiKeke() {
               </div>
             </div>
             <div style={{ flex:1, overflowY:"auto", padding:"16px 20px", display:"flex", flexDirection:"column", gap:10 }}>
-              {(msgs[activeChat.id]||[]).map((msg, i) => (
-                <div key={i} style={{
-                  maxWidth:"75%", padding:"10px 14px", fontSize:14, lineHeight:1.5,
-                  borderRadius: msg.from==="me" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                  background: msg.from==="me" ? "linear-gradient(135deg,#FF3B5C,#A855F7)" : "rgba(255,255,255,0.1)",
-                  alignSelf: msg.from==="me" ? "flex-end" : "flex-start",
-                }}>{msg.text}</div>
-              ))}
+              {(msgs[activeChat.id]||[]).map((msg, i) => {
+                const reactionKey = `${activeChat.id}_${i}`;
+                const reaction = msgReactions[reactionKey];
+                return (
+                  <div key={i} style={{ display:"flex", flexDirection:"column", alignSelf: msg.from==="me" ? "flex-end" : "flex-start", maxWidth:"75%" }}>
+                    <div onDoubleClick={() => setShowReactionPicker(reactionKey)}
+                      style={{
+                        padding:"10px 14px", fontSize:14, lineHeight:1.5, cursor:"pointer",
+                        borderRadius: msg.from==="me" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                        background: msg.from==="me" ? "linear-gradient(135deg,#FF3B5C,#A855F7)" : "rgba(255,255,255,0.1)",
+                      }}>
+                      {msg.text}
+                    </div>
+                    {reaction && (
+                      <div style={{ fontSize:16, marginTop:2, alignSelf: msg.from==="me" ? "flex-end" : "flex-start", background:"rgba(255,255,255,0.1)", borderRadius:12, padding:"2px 8px" }}>{reaction}</div>
+                    )}
+                    {showReactionPicker === reactionKey && (
+                      <div style={{ display:"flex", gap:6, background:"rgba(30,10,60,0.98)", borderRadius:20, padding:"8px 12px", boxShadow:"0 4px 20px rgba(0,0,0,0.5)", zIndex:10, marginTop:4 }}>
+                        {["❤️","😂","😮","😢","🔥","👏"].map(emoji => (
+                          <span key={emoji} onClick={() => { setMsgReactions(r => ({...r, [reactionKey]: emoji})); setShowReactionPicker(null); }}
+                            style={{ fontSize:22, cursor:"pointer" }}>{emoji}</span>
+                        ))}
+                        <span onClick={() => setShowReactionPicker(null)} style={{ fontSize:14, color:"rgba(255,255,255,0.4)", cursor:"pointer", display:"flex", alignItems:"center" }}>✕</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               {!(msgs[activeChat.id]?.length>0) && (
                 <div style={{ textAlign:"center", color:"rgba(255,255,255,0.3)", fontSize:13, marginTop:40 }}>💕 Kòmanse yon konvèsasyon!</div>
               )}
