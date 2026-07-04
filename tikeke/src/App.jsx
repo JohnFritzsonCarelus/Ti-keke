@@ -371,6 +371,8 @@ export default function TiKeke() {
   const [showReactionPicker, setShowReactionPicker] = useState(null);
   const [superLikeAnim, setSuperLikeAnim] = useState(false);
   const [videoUrl, setVideoUrl] = useState(null);
+  const [userCoords, setUserCoords] = useState(null);
+  const [locationDetecting, setLocationDetecting] = useState(false);
   const [videoUploading, setVideoUploading] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [verifyStep, setVerifyStep] = useState("intro"); // intro | upload | pending | done
@@ -511,6 +513,32 @@ export default function TiKeke() {
     } catch(e) { console.log("Delete error:", e); }
     handleLogout();
     alert("✅ Kont ou efase nèt. Mèsi pou konfyans ou nan Ti Kèkè.");
+  }
+
+  async function detectLocation(onSuccess) {
+    if (!navigator.geolocation) return;
+    setLocationDetecting(true);
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const { latitude, longitude } = pos.coords;
+        setUserCoords({ lat: latitude, lng: longitude });
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=fr`);
+        const data = await res.json();
+        const country = data.address?.country || "";
+        const city = data.address?.city || data.address?.town || data.address?.village || data.address?.county || "";
+        if (onSuccess) onSuccess({ country, city, lat: latitude, lng: longitude }); // city available but optional
+      } catch(e) { console.log("Location error:", e); }
+      setLocationDetecting(false);
+    }, () => setLocationDetecting(false), { timeout: 8000 });
+  }
+
+  function calcDistance(lat1, lng1, lat2, lng2) {
+    if (!lat1 || !lat2) return null;
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLng/2) * Math.sin(dLng/2);
+    return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
   }
 
   async function requestPushPermission() {
@@ -667,7 +695,9 @@ export default function TiKeke() {
                 online: false,
                 verified: f.verificationStatus?.stringValue === "verified",
                 vip: f.plan?.stringValue === "vip" || f.plan?.stringValue === "premium",
-                km: Math.floor(Math.random() * 50) + 1,
+                lat: f.lat?.doubleValue || f.lat?.integerValue || null,
+                lng: f.lng?.doubleValue || f.lng?.integerValue || null,
+                km: null, // will be calculated below
               };
             })
             .filter(Boolean);
@@ -678,6 +708,17 @@ export default function TiKeke() {
             const scoreA = a.interests.filter(i => userInterests.includes(i)).length;
             const scoreB = b.interests.filter(i => userInterests.includes(i)).length;
             return scoreB - scoreA;
+          });
+
+          // Calculate real distances
+          const myLat = user?.lat;
+          const myLng = user?.lng;
+          realUsers.forEach(u => {
+            if (myLat && u.lat) {
+              u.km = calcDistance(myLat, myLng, u.lat, u.lng);
+            } else {
+              u.km = null;
+            }
           });
 
           if (realUsers.length > 0) {
@@ -784,6 +825,13 @@ export default function TiKeke() {
 
   // ── PROFILE SETUP SCREEN ──
   if (user && !user.profileComplete) {
+    // Auto-detect location if not set
+    if (!setupData.country && !locationDetecting) {
+      detectLocation(({ country, lat, lng }) => {
+        setSetupData(p => ({ ...p, country }));
+        setUserCoords({ lat, lng });
+      });
+    }
     return (
       <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0F0F1A,#1A0A2E)", fontFamily:"'Inter',sans-serif", color:"#fff", overflowY:"auto" }}>
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');*{box-sizing:border-box;margin:0;padding:0}input::placeholder{color:rgba(255,255,255,0.3)}textarea::placeholder{color:rgba(255,255,255,0.3)}`}</style>
@@ -902,11 +950,17 @@ export default function TiKeke() {
               </select>
             </div>
 
-            <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
-              placeholder="🌍 Peyi ou (ex: Haiti, France, USA...)" value={setupData.country} onChange={e => setSetupData(p => ({...p, country: e.target.value}))} />
+            <div style={{ position:"relative" }}>
+              <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
+                placeholder="🌍 Peyi ou (ex: Haiti, France, USA...)" value={setupData.country} onChange={e => setSetupData(p => ({...p, country: e.target.value}))} />
+              {locationDetecting && <div style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", fontSize:12, color:"rgba(255,255,255,0.4)" }}>📍 Ap detekte...</div>}
+            </div>
 
-            <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
-              placeholder="📍 Vil ou (ex: Port-au-Prince, Paris...)" value={setupData.city} onChange={e => setSetupData(p => ({...p, city: e.target.value}))} />
+            <div style={{ position:"relative" }}>
+              <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
+                placeholder="📍 Ekri vil ou (ex: Port-au-Prince, Miami...)" value={setupData.city} onChange={e => setSetupData(p => ({...p, city: e.target.value}))} />
+              <div style={{ fontSize:11, color:"rgba(255,255,255,0.3)", marginTop:4, paddingLeft:4 }}>Peyi detekte otomatik — ou chwazi vil ou a</div>
+            </div>
 
             <textarea style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none", resize:"none", height:100 }}
               placeholder="💬 Di yon bagay sou ou (bio)..." value={setupData.bio} onChange={e => setSetupData(p => ({...p, bio: e.target.value}))} />
@@ -949,6 +1003,8 @@ export default function TiKeke() {
               country: setupData.country,
               city: setupData.city,
               bio: setupData.bio,
+              lat: userCoords?.lat || null,
+              lng: userCoords?.lng || null,
               photos: setupData.photos || [],
               photoUrl: (setupData.photos && setupData.photos[0]) || setupData.photoUrl || null,
               videoUrl: videoUrl || null,
