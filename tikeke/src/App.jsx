@@ -295,6 +295,8 @@ export default function TiKeke() {
   const [notifMsg, setNotifMsg] = useState(true);
   const [notifSuperLike, setNotifSuperLike] = useState(true);
   const [legalPage, setLegalPage] = useState(null);
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [showFilter, setShowFilter] = useState(false);
   const [paypalLoaded, setPaypalLoaded] = useState(false);
 
   // Restore session from localStorage (idToken + uid saved)
@@ -964,77 +966,90 @@ export default function TiKeke() {
 
         {/* ── DISCOVER ── */}
         {tab === "discover" && (
-          <div style={{ padding:"16px 20px", display:"flex", flexDirection:"column", alignItems:"center" }}>
-            <div style={{ width:"100%", maxWidth:380, height:480, position:"relative", marginBottom:24 }}>
+          <div style={{ background:"#0F0F1A", minHeight:"100vh" }}>
+            {/* HEADER */}
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 18px" }}>
+              <div style={{ fontSize:22, fontWeight:900, background:"linear-gradient(90deg,#FF3B5C,#A855F7)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Ti Kèkè 💕</div>
+              <div style={{ display:"flex", gap:10 }}>
+                <div onClick={() => setShowFilter(v => !v)} style={{ width:36, height:36, borderRadius:12, background:"rgba(255,255,255,0.07)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:16 }}>🔍</div>
+                {!isPremium && <div onClick={() => setShowPaywall(true)} style={{ background:"linear-gradient(135deg,#FF3B5C,#A855F7)", borderRadius:12, padding:"6px 14px", fontSize:12, fontWeight:800, cursor:"pointer" }}>💎 VIP</div>}
+              </div>
+            </div>
+
+            {/* GRIYAJ */}
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, padding:"0 12px 12px" }}>
               {cards.length === 0 ? (
-                <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"center", textAlign:"center", color:"rgba(255,255,255,0.4)" }}>
+                <div style={{ gridColumn:"1/-1", textAlign:"center", padding:"60px 20px", color:"rgba(255,255,255,0.4)" }}>
                   <div style={{ fontSize:60, marginBottom:16 }}>😅</div>
-                  <div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>{t.noMore}</div>
-                  <div style={{ fontSize:14 }}>{t.comeBack}</div>
+                  <div style={{ fontSize:18, fontWeight:700 }}>{t.noMore}</div>
                 </div>
               ) : cards.map((p, i) => (
-                <div key={p.id} style={{
-                  width:"100%", height:"100%", borderRadius:28,
-                  background:`linear-gradient(160deg,${p.color}22,${p.color}55)`,
-                  border:`1.5px solid ${p.color}44`,
-                  display:"flex", flexDirection:"column", overflow:"hidden",
-                  position:"absolute", top:0, left:0,
-                  transition: i===cards.length-1 && swipeDir ? "transform 0.4s ease,opacity 0.4s" : "none",
-                  transform: i===cards.length-1
-                    ? (swipeDir==="right" ? "translateX(120%) rotate(15deg)" : swipeDir==="left" ? "translateX(-120%) rotate(-15deg)" : swipeDir==="super" ? "translateY(-120%)" : `rotate(${i%2===0?-1:1}deg)`)
-                    : `scale(${0.94-(cards.length-1-i)*0.03}) translateY(${(cards.length-1-i)*10}px)`,
-                  opacity: i===cards.length-1 ? (swipeDir?0:1) : 0.7-(cards.length-1-i)*0.1,
-                  zIndex:i, backdropFilter:"blur(10px)", boxShadow:`0 20px 60px ${p.color}33`,
-                }}>
-                  <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", fontSize:110, background:`linear-gradient(160deg,${p.color}15,${p.color}35)` }}>{p.emoji}</div>
-                  <div style={{ padding:"20px 24px", background:"rgba(0,0,0,0.5)", backdropFilter:"blur(8px)" }}>
-                    <div style={{ fontSize:24, fontWeight:800, marginBottom:4 }}>
-                      <span style={{ display:"inline-block", width:8, height:8, borderRadius:"50%", background:p.online?"#22C55E":"#6B7280", marginRight:6, verticalAlign:"middle" }} />
-                      {p.name}, {p.age} {t.age}
-                    </div>
-                    <div style={{ fontSize:13, color:"rgba(255,255,255,0.55)", marginBottom:8 }}>📍 {p.city} · {p.km} {t.km}</div>
-                    <div style={{ fontSize:14, color:"rgba(255,255,255,0.8)", marginBottom:10, lineHeight:1.5 }}>{p.bio}</div>
-                    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                      {p.interests.map((x,idx) => (
-                        <span key={idx} style={{ background:`${p.color}25`, border:`1px solid ${p.color}44`, borderRadius:20, padding:"3px 10px", fontSize:11 }}>{x}</span>
-                      ))}
-                    </div>
+                <div key={p.id} onClick={() => setSelectedProfile(p)} style={{ position:"relative", borderRadius:20, overflow:"hidden", cursor:"pointer", aspectRatio:"0.72", background:"#1A1A2E", boxShadow:"0 4px 20px rgba(0,0,0,0.4)" }}>
+                  {p.photoUrl
+                    ? <img src={p.photoUrl} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                    : <div style={{ width:"100%", height:"100%", background:`linear-gradient(160deg,${p.color}55,${p.color}99)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:72 }}>{p.emoji}</div>
+                  }
+                  {/* PREMIUM BADGE */}
+                  {(p.vip || p.premium) && (
+                    <div style={{ position:"absolute", top:10, left:10, background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:9, fontWeight:900, padding:"3px 8px", borderRadius:8, letterSpacing:1 }}>✨ VIP</div>
+                  )}
+                  {p.online && (
+                    <div style={{ position:"absolute", top:10, right:10, width:11, height:11, borderRadius:"50%", background:"#22C55E", border:"2px solid rgba(0,0,0,0.5)" }} />
+                  )}
+                  <div style={{ position:"absolute", bottom:0, left:0, right:0, padding:"28px 12px 12px", background:"linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)" }}>
+                    <div style={{ fontSize:14, fontWeight:800, color:"#fff" }}>{p.name}, {p.age}</div>
+                    <div style={{ fontSize:10, color:"rgba(255,255,255,0.55)", marginTop:2 }}>📍 {p.city}</div>
+                    {p.km && <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)" }}>{p.km} km</div>}
                   </div>
                 </div>
               ))}
             </div>
 
-            {cards.length > 0 && (
-              <div style={{ display:"flex", justifyContent:"center", gap:18, alignItems:"center" }}>
-                {[["#EF4444",54,"✕","left"],["#3B82F6",48,"⭐","super"],["#FF3B5C",64,"♥","right"]].map(([color,size,icon,dir]) => (
-                  <div key={dir} onClick={() => handleSwipe(dir, currentCard)} style={{
-                    width:size, height:size, borderRadius:"50%", background:`${color}18`,
-                    border:`2px solid ${color}66`, display:"flex", alignItems:"center", justifyContent:"center",
-                    fontSize:dir==="right"?28:dir==="super"?22:18, cursor:"pointer",
-                    transition:"transform 0.15s,background 0.15s", position:"relative",
-                  }}>
-                    {icon}
-                    {dir==="super" && !isPremium && (
-                      <div style={{ position:"absolute", top:-4, right:-4, width:14, height:14, borderRadius:"50%", background:"#FF3B5C", fontSize:8, display:"flex", alignItems:"center", justifyContent:"center" }}>🔒</div>
-                    )}
-                  </div>
-                ))}
+            {/* VIP BANNER */}
+            {!isPremium && (
+              <div onClick={() => setShowPaywall(true)} style={{ margin:"4px 12px 20px", background:"linear-gradient(135deg,rgba(255,59,92,0.12),rgba(168,85,247,0.12))", border:"1px solid rgba(255,59,92,0.25)", borderRadius:18, padding:"14px 18px", display:"flex", alignItems:"center", gap:12, cursor:"pointer" }}>
+                <span style={{ fontSize:28 }}>💎</span>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:13, fontWeight:800, color:"#FF3B5C" }}>Jwenn aksè VIP</div>
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:2 }}>Wè plis moun, swipe san limit</div>
+                </div>
+                <span style={{ fontSize:18, color:"rgba(255,255,255,0.3)" }}>›</span>
               </div>
             )}
 
-            {/* FREE LIMIT BANNER */}
-            {!isPremium && (
-              <div onClick={() => setShowPaywall(true)} style={{
-                marginTop:20, width:"100%", maxWidth:380, background:"linear-gradient(135deg,rgba(255,59,92,0.15),rgba(168,85,247,0.15))",
-                border:"1px solid rgba(255,59,92,0.3)", borderRadius:16, padding:"12px 18px",
-                display:"flex", alignItems:"center", gap:12, cursor:"pointer",
-              }}>
-                <div style={{ fontSize:24 }}>💎</div>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:13, fontWeight:700, color:"#FF3B5C" }}>{t.unlock}</div>
-                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{t.unlockSub}</div>
+            {/* PROFILE DETAIL POPUP */}
+            {selectedProfile && (
+              <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.95)", zIndex:300, overflowY:"auto" }}>
+                <div style={{ maxWidth:430, margin:"0 auto" }}>
+                  <div style={{ position:"relative", height:400 }}>
+                    {selectedProfile.photoUrl
+                      ? <img src={selectedProfile.photoUrl} alt={selectedProfile.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                      : <div style={{ width:"100%", height:"100%", background:`linear-gradient(160deg,${selectedProfile.color}44,${selectedProfile.color}88)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:120 }}>{selectedProfile.emoji}</div>
+                    }
+                    <div onClick={() => setSelectedProfile(null)} style={{ position:"absolute", top:16, left:16, width:36, height:36, borderRadius:"50%", background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:18 }}>←</div>
+                    {(selectedProfile.vip || selectedProfile.premium) && (
+                      <div style={{ position:"absolute", top:16, right:16, background:"#009688", color:"#fff", fontSize:11, fontWeight:800, padding:"3px 10px", borderRadius:4 }}>VIP</div>
+                    )}
+                  </div>
+                  <div style={{ padding:"24px 20px" }}>
+                    <div style={{ fontSize:26, fontWeight:900, marginBottom:4 }}>
+                      <span style={{ display:"inline-block", width:10, height:10, borderRadius:"50%", background:selectedProfile.online?"#22C55E":"#6B7280", marginRight:8, verticalAlign:"middle" }} />
+                      {selectedProfile.name}, {selectedProfile.age}
+                    </div>
+                    <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>📍 {selectedProfile.city} · {selectedProfile.km} km</div>
+                    <div style={{ fontSize:14, color:"rgba(255,255,255,0.75)", lineHeight:1.6, marginBottom:16 }}>{selectedProfile.bio}</div>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:28 }}>
+                      {(selectedProfile.interests||[]).map((x,i) => (
+                        <span key={i} style={{ background:`${selectedProfile.color}25`, border:`1px solid ${selectedProfile.color}44`, borderRadius:20, padding:"4px 12px", fontSize:12 }}>{x}</span>
+                      ))}
+                    </div>
+                    <div style={{ display:"flex", gap:16, justifyContent:"center" }}>
+                      <div onClick={() => { handleSwipe("left", selectedProfile); setSelectedProfile(null); }} style={{ width:60, height:60, borderRadius:"50%", background:"rgba(239,68,68,0.15)", border:"2px solid rgba(239,68,68,0.5)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, cursor:"pointer" }}>✕</div>
+                      <div onClick={() => { handleSwipe("right", selectedProfile); setSelectedProfile(null); }} style={{ width:70, height:70, borderRadius:"50%", background:"rgba(255,59,92,0.15)", border:"2px solid rgba(255,59,92,0.5)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:30, cursor:"pointer" }}>♥</div>
+                      <div onClick={() => { handleSwipe("super", selectedProfile); setSelectedProfile(null); }} style={{ width:60, height:60, borderRadius:"50%", background:"rgba(59,130,246,0.15)", border:"2px solid rgba(59,130,246,0.5)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, cursor:"pointer" }}>⭐</div>
+                    </div>
+                  </div>
                 </div>
-                <div style={{ fontSize:18, color:"rgba(255,255,255,0.3)" }}>›</div>
               </div>
             )}
           </div>
