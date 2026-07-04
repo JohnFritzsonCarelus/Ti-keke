@@ -125,6 +125,21 @@ const translations = {
     vip: "VIP", vipSub: "Tout + Badge VIP ⭐",
     mo: "/mwa", perMonth: "pa mwa",
     card: "Kat Kredi / Debi", moncash: "MonCash 🇭🇹",
+    settings:"Paramèt", account:"Kont", privacy:"Konfidansyalite", lang_section:"Lang",
+    notifications:"Notifikasyon", security:"Sekirite", legal_section:"Legal", support:"Sipò",
+    editProfile:"Modifye Pwofil", changePhoto:"Chanje Foto", shareProfile:"Pataje Pwofil",
+    profileVisibility:"Vizibilite Pwofil", profileVisible:"Pwofil ou vizib", profileHidden:"Pwofil ou kache",
+    locationSetting:"Lokasyon", locationOn:"Lokasyon aktive", locationOff:"Lokasyon dezaktive",
+    blockedUsers:"Moun ou bloke", noBlocked:"Pa gen moun bloke",
+    faq:"Èd / FAQ", faqSub:"Kesyon souvan poze", contact:"Kontakte Nou", rateApp:"Evalye App la", rateSub:"Ban nou yon avis",
+    pushNotif:"Notifikasyon Push", pushOn:"Aktive ✓", pushOff:"Klike pou aktive",
+    newMatch:"Nouvo Matche", newMsg:"Nouvo Mesaj",
+    changePassword:"Chanje Modpas", changePasswordSub:"Nou ap voye yon imel ba ou",
+    logout:"Dekonekte", deleteAccount:"Siprime Kont",
+    confirmLogout:"Dekonekte?", confirmLogoutMsg:"Ou pral soti nan kont ou.",
+    yesLogout:"Wi, Dekonekte",
+    confirmDelete:"Siprime Kont?", confirmDeleteMsg:"Aksyon sa pa ka defèt. Tout done ap efase.",
+    yesDelete:"Wi, Efase Kont Mwen",
     natcash: "NatCash", paypal: "PayPal",
     cardNum: "Nimewo Kat", expiry: "MM/YY", cvv: "CVV",
     phone: "Nimewo Telefòn", email: "Imèl PayPal",
@@ -156,6 +171,38 @@ const translations = {
     vip: "VIP", vipSub: "Tout + Badge VIP ⭐",
     mo: "/mois", perMonth: "par mois",
     card: "Carte Crédit / Débit", moncash: "MonCash 🇭🇹",
+    settings:"Paramètres", account:"Compte", privacy:"Confidentialité", lang_section:"Langue",
+    notifications:"Notifications", security:"Sécurité", legal_section:"Légal", support:"Support",
+    editProfile:"Modifier Profil", changePhoto:"Changer Photo", shareProfile:"Partager Profil",
+    profileVisibility:"Visibilité Profil", profileVisible:"Profil visible", profileHidden:"Profil caché",
+    locationSetting:"Localisation", locationOn:"Localisation activée", locationOff:"Localisation désactivée",
+    blockedUsers:"Utilisateurs bloqués", noBlocked:"Aucun bloqué",
+    faq:"Aide / FAQ", faqSub:"Questions fréquentes", contact:"Nous contacter", rateApp:"Évaluer App", rateSub:"Donnez un avis",
+    pushNotif:"Notifications Push", pushOn:"Activé ✓", pushOff:"Cliquer pour activer",
+    newMatch:"Nouveau Match", newMsg:"Nouveau Message",
+    changePassword:"Changer mot de passe", changePasswordSub:"Nous vous enverrons un email",
+    logout:"Déconnexion", deleteAccount:"Supprimer Compte",
+    confirmLogout:"Déconnexion?", confirmLogoutMsg:"Vous allez quitter votre compte.",
+    yesLogout:"Oui, Déconnexion",
+    confirmDelete:"Supprimer Compte?", confirmDeleteMsg:"Action irréversible. Toutes vos données seront effacées.",
+    yesDelete:"Oui, Supprimer mon Compte",
+    // Settings
+    settings:"Paramètres", account:"Compte", privacy:"Confidentialité", lang_section:"Langue",
+    notifications:"Notifications", security:"Sécurité", legal_section:"Légal", support:"Support",
+    editProfile:"Modifier Profil", changePhoto:"Changer Photo", shareProfile:"Partager Profil",
+    profileVisibility:"Visibilité Profil", profileVisible:"Profil visible", profileHidden:"Profil caché",
+    locationSetting:"Localisation", locationOn:"Localisation activée", locationOff:"Localisation désactivée",
+    blockedUsers:"Utilisateurs bloqués", noBlocked:"Aucun utilisateur bloqué",
+    faq:"Aide / FAQ", faqSub:"Questions fréquentes", contact:"Nous contacter", rateApp:"Évaluer l'app", rateSub:"Donnez-nous un avis",
+    pushNotif:"Notifications Push", pushOn:"Activé ✓", pushOff:"Cliquer pour activer",
+    newMatch:"Nouveau Match", newMsg:"Nouveau Message", superLike:"Super Like",
+    changePassword:"Changer mot de passe", changePasswordSub:"Nous vous enverrons un email",
+    logout:"Déconnexion", deleteAccount:"Supprimer Compte",
+    confirmLogout:"Déconnexion?", confirmLogoutMsg:"Vous allez quitter votre compte. Vos données resteront sauvegardées.",
+    yesLogout:"Oui, Déconnexion",
+    confirmDelete:"Supprimer Compte?", confirmDeleteMsg:"Cette action est irréversible. Toutes vos données seront effacées.",
+    yesDelete:"Oui, Supprimer mon Compte",
+    cancel:"Annuler",
     natcash: "NatCash", paypal: "PayPal",
     cardNum: "Numéro de carte", expiry: "MM/AA", cvv: "CVV",
     phone: "Numéro de téléphone", email: "Email PayPal",
@@ -218,6 +265,23 @@ const translations = {
     vip: "VIP", vipSub: "Todo + Insignia VIP ⭐",
     mo: "/mes", perMonth: "por mes",
     card: "Tarjeta Crédito / Débito", applepay: "Apple Pay", moncash: "MonCash 🇭🇹",
+    // Settings
+    settings:"Ajustes", account:"Cuenta", privacy:"Privacidad", lang_section:"Idioma",
+    notifications:"Notificaciones", security:"Seguridad", legal_section:"Legal", support:"Soporte",
+    editProfile:"Editar Perfil", changePhoto:"Cambiar Foto", shareProfile:"Compartir Perfil",
+    profileVisibility:"Visibilidad Perfil", profileVisible:"Perfil visible", profileHidden:"Perfil oculto",
+    locationSetting:"Ubicación", locationOn:"Ubicación activada", locationOff:"Ubicación desactivada",
+    blockedUsers:"Usuarios bloqueados", noBlocked:"Sin usuarios bloqueados",
+    faq:"Ayuda / FAQ", faqSub:"Preguntas frecuentes", contact:"Contáctenos", rateApp:"Calificar App", rateSub:"Danos tu opinión",
+    pushNotif:"Notificaciones Push", pushOn:"Activado ✓", pushOff:"Clic para activar",
+    newMatch:"Nuevo Match", newMsg:"Nuevo Mensaje", superLike:"Super Like",
+    changePassword:"Cambiar Contraseña", changePasswordSub:"Te enviaremos un email",
+    logout:"Cerrar sesión", deleteAccount:"Eliminar Cuenta",
+    confirmLogout:"¿Cerrar sesión?", confirmLogoutMsg:"Saldrás de tu cuenta. Tus datos se conservarán.",
+    yesLogout:"Sí, Cerrar sesión",
+    confirmDelete:"¿Eliminar Cuenta?", confirmDeleteMsg:"Esta acción es irreversible. Todos tus datos serán eliminados.",
+    yesDelete:"Sí, Eliminar mi Cuenta",
+    cancel:"Cancelar",
     natcash: "NatCash", paypal: "PayPal",
     cardNum: "Número de tarjeta", expiry: "MM/AA", cvv: "CVV",
     phone: "Número de teléfono", email: "Email de PayPal",
@@ -249,6 +313,23 @@ const translations = {
     vip: "VIP", vipSub: "Tudo + Emblema VIP ⭐",
     mo: "/mês", perMonth: "por mês",
     card: "Cartão Crédito / Débito", applepay: "Apple Pay", moncash: "MonCash 🇭🇹",
+    // Settings
+    settings:"Configurações", account:"Conta", privacy:"Privacidade", lang_section:"Idioma",
+    notifications:"Notificações", security:"Segurança", legal_section:"Legal", support:"Suporte",
+    editProfile:"Editar Perfil", changePhoto:"Mudar Foto", shareProfile:"Compartilhar Perfil",
+    profileVisibility:"Visibilidade Perfil", profileVisible:"Perfil visível", profileHidden:"Perfil oculto",
+    locationSetting:"Localização", locationOn:"Localização ativada", locationOff:"Localização desativada",
+    blockedUsers:"Usuários bloqueados", noBlocked:"Sem usuários bloqueados",
+    faq:"Ajuda / FAQ", faqSub:"Perguntas frequentes", contact:"Fale Conosco", rateApp:"Avaliar App", rateSub:"Nos dê seu feedback",
+    pushNotif:"Notificações Push", pushOn:"Ativado ✓", pushOff:"Clique para ativar",
+    newMatch:"Novo Match", newMsg:"Nova Mensagem", superLike:"Super Like",
+    changePassword:"Alterar Senha", changePasswordSub:"Enviaremos um email para você",
+    logout:"Sair", deleteAccount:"Excluir Conta",
+    confirmLogout:"Sair?", confirmLogoutMsg:"Você sairá da sua conta. Seus dados permanecerão salvos.",
+    yesLogout:"Sim, Sair",
+    confirmDelete:"Excluir Conta?", confirmDeleteMsg:"Esta ação não pode ser desfeita. Todos os seus dados serão apagados.",
+    yesDelete:"Sim, Excluir minha Conta",
+    cancel:"Cancelar",
     natcash: "NatCash", paypal: "PayPal",
     cardNum: "Número do cartão", expiry: "MM/AA", cvv: "CVV",
     phone: "Número de telefone", email: "Email do PayPal",
@@ -1808,7 +1889,7 @@ export default function TiKeke() {
             {/* Header */}
             <div style={{ display:"flex", alignItems:"center", gap:12, padding:"16px 20px", borderBottom:"1px solid rgba(255,255,255,0.08)" }}>
               <span onClick={() => setShowSettings(false)} style={{ fontSize:22, cursor:"pointer", color:"#FF3B5C" }}>←</span>
-              <div style={{ fontSize:18, fontWeight:800 }}>⚙️ Paramèt</div>
+              <div style={{ fontSize:18, fontWeight:800 }}>⚙️ {t.settings}</div>
             </div>
 
             {/* ACCOUNT SECTION */}
@@ -1816,9 +1897,9 @@ export default function TiKeke() {
               <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>👤 Kont</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 {[
-                  { icon:"✏️", label:"Modifye Pwofil", action: () => { const u = {...user, profileComplete:false}; setUser(u); const s = JSON.parse(localStorage.getItem("tikeke_session")||"{}"); localStorage.setItem("tikeke_session", JSON.stringify({...s, profileComplete:false})); setShowSettings(false); } },
-                  { icon:"📸", label:"Chanje Foto", action: () => document.getElementById("settingsPhotoInput").click() },
-                  { icon:"🔗", label:"Pataje Pwofil", action: () => { navigator.share ? navigator.share({title:"Ti Kèkè", text:"Jwenn mwen sou Ti Kèkè!", url:"https://ti-keke.vercel.app"}) : alert("Kopi lyen: ti-keke.vercel.app"); } },
+                  { icon:"✏️", label:t.editProfile, action: () => { const u = {...user, profileComplete:false}; setUser(u); const s = JSON.parse(localStorage.getItem("tikeke_session")||"{}"); localStorage.setItem("tikeke_session", JSON.stringify({...s, profileComplete:false})); setShowSettings(false); } },
+                  { icon:"📸", label:t.changePhoto, action: () => document.getElementById("settingsPhotoInput").click() },
+                  { icon:"🔗", label:t.shareProfile, action: () => { navigator.share ? navigator.share({title:"Ti Kèkè", text:"Jwenn mwen sou Ti Kèkè!", url:"https://ti-keke.vercel.app"}) : alert("Kopi lyen: ti-keke.vercel.app"); } },
                 ].map((item, i, arr) => (
                   <div key={i} onClick={item.action} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
                     <span style={{ fontSize:20 }}>{item.icon}</span>
@@ -1844,9 +1925,9 @@ export default function TiKeke() {
               <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🔒 Konfidansyalite</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 {[
-                  { icon:"👁️", label:"Vizibilite Pwofil", sub: visibility ? "Pwofil ou vizib" : "Pwofil ou kache", action: () => setVisibility(v => !v), toggle: true, val: visibility },
-                  { icon:"📍", label:"Lokasyon", sub: locationOn ? "Lokasyon aktive" : "Lokasyon dezaktive", action: () => setLocationOn(v => !v), toggle: true, val: locationOn },
-                  { icon:"🚫", label:"Moun ou bloke", sub: blockedUsers.length > 0 ? `${blockedUsers.length} moun bloke` : "Pa gen moun bloke", action: () => setShowBlocked(true) },
+                  { icon:"👁️", label:t.profileVisibility, sub: visibility ? t.profileVisible : t.profileHidden, action: () => setVisibility(v => !v), toggle: true, val: visibility },
+                  { icon:"📍", label:t.locationSetting, sub: locationOn ? t.locationOn : t.locationOff, action: () => setLocationOn(v => !v), toggle: true, val: locationOn },
+                  { icon:"🚫", label:t.blockedUsers, sub: blockedUsers.length > 0 ? `${blockedUsers.length}` : t.noBlocked, action: () => setShowBlocked(true) },
                 ].map((item, i, arr) => (
                   <div key={i} onClick={item.action} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
                     <span style={{ fontSize:20 }}>{item.icon}</span>
@@ -1928,9 +2009,9 @@ export default function TiKeke() {
               <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>💬 Sipò</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 {[
-                  { icon:"❓", label:"Èd / FAQ", sub:"Kesyon souvan poze", action: () => setShowFAQ(true) },
-                  { icon:"📧", label:"Kontakte Nou", sub:"support@tikeke.com", action: () => window.open("mailto:support@tikeke.com?subject=Ti Kèkè Support", "_blank") },
-                  { icon:"⭐", label:"Evalye App la", sub:"Ban nou yon avis", action: () => setShowRating(true) },
+                  { icon:"❓", label:t.faq, sub:t.faqSub, action: () => setShowFAQ(true) },
+                  { icon:"📧", label:t.contact, sub:"support@tikeke.com", action: () => window.open("mailto:support@tikeke.com?subject=Ti Kèkè Support", "_blank") },
+                  { icon:"⭐", label:t.rateApp, sub:t.rateSub, action: () => setShowRating(true) },
                 ].map((item, i, arr) => (
                   <div key={i} onClick={item.action} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
                     <span style={{ fontSize:20 }}>{item.icon}</span>
@@ -1992,16 +2073,16 @@ export default function TiKeke() {
                 <div style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:15 }}>📱 Notifikasyon Push</div>
-                    <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{pushEnabled ? "Aktive ✓" : "Klike pou aktive"}</div>
+                    <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{pushEnabled ? t.pushOn : t.pushOff}</div>
                   </div>
                   <div onClick={() => pushEnabled ? setPushEnabled(false) : requestPushPermission()} style={{ width:44, height:24, borderRadius:12, background: pushEnabled ? "linear-gradient(135deg,#FF3B5C,#A855F7)" : "rgba(255,255,255,0.15)", position:"relative", cursor:"pointer", transition:"background 0.2s" }}>
                     <div style={{ position:"absolute", top:3, left: pushEnabled ? 22 : 3, width:18, height:18, borderRadius:"50%", background:"#fff", transition:"left 0.2s" }} />
                   </div>
                 </div>
                 {[
-                  { label:"Nouvo Matche", val: notifMatch, set: setNotifMatch },
-                  { label:"Nouvo Mesaj", val: notifMsg, set: setNotifMsg },
-                  { label:"Super Like", val: notifSuperLike, set: setNotifSuperLike },
+                  { label:t.newMatch, val: notifMatch, set: setNotifMatch },
+                  { label:t.newMsg, val: notifMsg, set: setNotifMsg },
+                  { label:t.superLike, val: notifSuperLike, set: setNotifSuperLike },
                 ].map((item, i, arr) => (
                   <div key={i} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
                     <div style={{ flex:1, fontSize:15 }}>🔔 {item.label}</div>
