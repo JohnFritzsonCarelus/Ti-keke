@@ -399,7 +399,8 @@ export default function TiKeke() {
         // Load full profile from Firestore
         const profile = await loadUserProfile(session.uid, session.idToken);
         if (profile) {
-          const merged = { ...session, ...profile };
+          // Always keep idToken from session (Firestore doesn't store it)
+          const merged = { ...profile, uid: session.uid, idToken: session.idToken, email: session.email };
           setUser(merged);
           if (merged.profileComplete === true || merged.profileComplete === "true") {
             setSetupData({
@@ -888,10 +889,12 @@ export default function TiKeke() {
             if (!setupData.country) { setSetupError("Mete peyi ou!"); return; }
             if (!setupData.city) { setSetupError("Mete vil ou!"); return; }
             if ((setupData.interests||[]).length < 2) { setSetupError("Chwazi omwen 2 enterè!"); return; }
+            const session = JSON.parse(localStorage.getItem("tikeke_session") || "{}");
             const updated = {
-              ...user, 
+              ...session,
+              ...user,
               name: setupData.name,
-              age: setupData.age,
+              age: Number(setupData.age),
               gender: setupData.gender,
               country: setupData.country,
               city: setupData.city,
@@ -900,12 +903,18 @@ export default function TiKeke() {
               photoUrl: (setupData.photos && setupData.photos[0]) || setupData.photoUrl || null,
               videoUrl: videoUrl || null,
               interests: setupData.interests,
-              profileComplete: true
+              profileComplete: true,
+              updatedAt: new Date().toISOString()
             };
             setUser(updated);
-            const session = JSON.parse(localStorage.getItem("tikeke_session") || "{}");
-            localStorage.setItem("tikeke_session", JSON.stringify({...session, ...updated}));
-            saveUserProfile(updated, user?.idToken);
+            localStorage.setItem("tikeke_session", JSON.stringify(updated));
+            const idToken = session.idToken || user?.idToken;
+            saveUserProfile(updated, idToken).then(() => {
+              console.log("Profile saved successfully");
+            }).catch(e => {
+              console.error("Profile save error:", e);
+              alert("Erè sove pwofil — eseye ankò");
+            });
           }} style={{ width:"100%", padding:"16px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer" }}>
             💕 Kòmanse Ti Kèkè!
           </button>
