@@ -5,6 +5,7 @@ const FIRESTORE_URL = "https://firestore.googleapis.com/v1/projects/tikeke-a91b8
 const FIREBASE_API_KEY = "AIzaSyC8sC0fiGwOAZXMTph5EHAwlTF8PANnkwU";
 const FIREBASE_AUTH_URL = "https://identitytoolkit.googleapis.com/v1/accounts";
 const PAYPAL_CLIENT_ID = "AQ8vWtSeGLcJf5bno8_ADrU7YE2J6SwWCx-zfStbXqYRufaOzB7aEEcWvfRSGIxiIaY8Uwcz8Rgnu-Mv";
+const TIKEKE_LOGO = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjRkYzQjVDIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI0E4NTVGNyIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZ2JnIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJBMEExRSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMxQTBBMkUiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iNDAiIGZpbGw9InVybCgjZ2JnKSIvPgogIDxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgPHBhdGggZD0iTTkwIDEyOCBDOTAgMTI4IDQ2IDEwNCA0NiA3NSBDNDYgNjAgNTYgNTAgNjggNTMgQzczIDU1IDgwIDYwIDkwIDY4IEMxMDAgNjAgMTA3IDU1IDExMiA1MyBDMTI0IDUwIDEzNCA2MCAxMzQgNzUgQzEzNCAxMDQgOTAgMTI4IDkwIDEyOFoiIGZpbGw9InVybCgjZykiIG9wYWNpdHk9IjAuOSIvPgogIDx0ZXh0IHg9IjY4IiB5PSI5NiIgZm9udC1zaXplPSIzMiIgZm9udC13ZWlnaHQ9IjkwMCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjaywgQXJpYWwiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlQ8L3RleHQ+CiAgPHRleHQgeD0iMTEyIiB5PSI5NiIgZm9udC1zaXplPSIzMiIgZm9udC13ZWlnaHQ9IjkwMCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjaywgQXJpYWwiIHRleHQtYW5jaG9yPSJtaWRkbGUiPks8L3RleHQ+CiAgPGNpcmNsZSBjeD0iOTAiIGN5PSI0MiIgcj0iMy41IiBmaWxsPSJ1cmwoI2cpIiBvcGFjaXR5PSIwLjciLz4KICA8Y2lyY2xlIGN4PSI3NCIgY3k9IjQ3IiByPSIyIiBmaWxsPSJ1cmwoI2cpIiBvcGFjaXR5PSIwLjUiLz4KICA8Y2lyY2xlIGN4PSIxMDYiIGN5PSI0NyIgcj0iMiIgZmlsbD0idXJsKCNnKSIgb3BhY2l0eT0iMC41Ii8+Cjwvc3ZnPg==";
 
 // ── FIREBASE AUTH REST ──────────────────────────────────────
 async function firebaseSignUp(email, password) {
@@ -570,7 +571,7 @@ export default function TiKeke() {
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');*{box-sizing:border-box;margin:0;padding:0}input::placeholder{color:rgba(255,255,255,0.3)}textarea::placeholder{color:rgba(255,255,255,0.3)}`}</style>
         <div style={{ maxWidth:430, margin:"0 auto", padding:"32px 24px 60px" }}>
           <div style={{ textAlign:"center", marginBottom:28 }}>
-            <div style={{ fontSize:40, marginBottom:8 }}>✨</div>
+            <img src={TIKEKE_LOGO} alt="Ti Kèkè" style={{ width:72, height:72, borderRadius:20, marginBottom:12 }} />
             <div style={{ fontSize:22, fontWeight:900, background:"linear-gradient(90deg,#FF3B5C,#A855F7)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Kreye Pwofil Ou</div>
             <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)", marginTop:4 }}>Pou moun ka konnen ou! 💕</div>
           </div>
@@ -969,7 +970,10 @@ export default function TiKeke() {
           <div style={{ background:"#0F0F1A", minHeight:"100vh" }}>
             {/* HEADER */}
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 18px" }}>
-              <div style={{ fontSize:22, fontWeight:900, background:"linear-gradient(90deg,#FF3B5C,#A855F7)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Ti Kèkè 💕</div>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <img src={TIKEKE_LOGO} alt="Ti Kèkè" style={{ width:36, height:36, borderRadius:10 }} />
+                <span style={{ fontSize:20, fontWeight:900, background:"linear-gradient(90deg,#FF3B5C,#A855F7)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Ti Kèkè</span>
+              </div>
               <div style={{ display:"flex", gap:10 }}>
                 <div onClick={() => setShowFilter(v => !v)} style={{ width:36, height:36, borderRadius:12, background:"rgba(255,255,255,0.07)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:16 }}>🔍</div>
                 {!isPremium && <div onClick={() => setShowPaywall(true)} style={{ background:"linear-gradient(135deg,#FF3B5C,#A855F7)", borderRadius:12, padding:"6px 14px", fontSize:12, fontWeight:800, cursor:"pointer" }}>💎 VIP</div>}
