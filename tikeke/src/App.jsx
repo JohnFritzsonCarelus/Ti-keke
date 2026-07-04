@@ -343,7 +343,29 @@ export default function TiKeke() {
   const [legalPage, setLegalPage] = useState(null);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [showFilter, setShowFilter] = useState(false);
+  const [showProfileViews, setShowProfileViews] = useState(false);
   const [paypalLoaded, setPaypalLoaded] = useState(false);
+  // Filter
+  const [filterAge, setFilterAge] = useState([18, 50]);
+  const [filterGender, setFilterGender] = useState("all");
+  const [filterDistance, setFilterDistance] = useState(100);
+  const [filterCountry, setFilterCountry] = useState("");
+  // Profile views
+  const [profileViews, setProfileViews] = useState([
+    { id:1, name:"Naïka", age:24, city:"Port-au-Prince", emoji:"👩🏾", color:"#FF6B9D", time:"2 minit" },
+    { id:2, name:"Joëlson", age:29, city:"Jacmel", emoji:"👨🏾", color:"#10B981", time:"1 è" },
+    { id:3, name:"Fabiola", age:25, city:"Les Cayes", emoji:"👩🏿", color:"#EC4899", time:"3 è" },
+  ]);
+  // Report
+  const [showReport, setShowReport] = useState(false);
+  const [reportTarget, setReportTarget] = useState(null);
+  const [reportReason, setReportReason] = useState("");
+  const [reportSent, setReportSent] = useState(false);
+  // Promo
+  const [showPromo, setShowPromo] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoMsg, setPromoMsg] = useState("");
+  const PROMO_CODES = { "TIKEKE50": { discount: 50, plan: "premium" }, "VIP100": { discount: 100, plan: "vip" }, "HAITI2025": { discount: 30, plan: "basic" } };
 
   // Restore session from localStorage (idToken + uid saved)
   useEffect(() => {
@@ -1060,6 +1082,60 @@ export default function TiKeke() {
         {/* ── DISCOVER ── */}
         {tab === "discover" && (
           <div style={{ background:"#0F0F1A", minHeight:"100vh" }}>
+            {/* FILTER MODAL */}
+            {showFilter && (
+              <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.95)", zIndex:400, overflowY:"auto" }}>
+                <div style={{ maxWidth:430, margin:"0 auto", padding:"20px" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
+                    <div style={{ fontSize:18, fontWeight:800 }}>🔍 Filtre Rechèch</div>
+                    <span onClick={() => setShowFilter(false)} style={{ fontSize:22, cursor:"pointer", color:"#FF3B5C" }}>✕</span>
+                  </div>
+
+                  {/* GENDER */}
+                  <div style={{ marginBottom:20 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:10, textTransform:"uppercase", letterSpacing:1 }}>Sèks</div>
+                    <div style={{ display:"flex", gap:10 }}>
+                      {[["all","Tout 👥"],["female","Fanm 👩"],["male","Gason 👨"]].map(([v,l]) => (
+                        <div key={v} onClick={() => setFilterGender(v)} style={{ flex:1, textAlign:"center", padding:"10px 6px", borderRadius:14, fontSize:13, fontWeight:700, cursor:"pointer", background: filterGender===v ? "linear-gradient(135deg,#FF3B5C,#A855F7)" : "rgba(255,255,255,0.06)" }}>{l}</div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* AGE */}
+                  <div style={{ marginBottom:20 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:10, textTransform:"uppercase", letterSpacing:1 }}>Laj: {filterAge[0]} - {filterAge[1]} an</div>
+                    <div style={{ display:"flex", gap:12, alignItems:"center" }}>
+                      <span style={{ fontSize:12, color:"rgba(255,255,255,0.4)" }}>18</span>
+                      <input type="range" min="18" max="70" value={filterAge[0]} onChange={e => setFilterAge([Number(e.target.value), filterAge[1]])} style={{ flex:1, accentColor:"#FF3B5C" }} />
+                      <input type="range" min="18" max="70" value={filterAge[1]} onChange={e => setFilterAge([filterAge[0], Number(e.target.value)])} style={{ flex:1, accentColor:"#A855F7" }} />
+                      <span style={{ fontSize:12, color:"rgba(255,255,255,0.4)" }}>70</span>
+                    </div>
+                  </div>
+
+                  {/* DISTANCE */}
+                  <div style={{ marginBottom:20 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:10, textTransform:"uppercase", letterSpacing:1 }}>Distans: {filterDistance} km</div>
+                    <input type="range" min="5" max="500" value={filterDistance} onChange={e => setFilterDistance(Number(e.target.value))} style={{ width:"100%", accentColor:"#FF3B5C" }} />
+                    <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:"rgba(255,255,255,0.3)", marginTop:4 }}>
+                      <span>5 km</span><span>500 km</span>
+                    </div>
+                  </div>
+
+                  {/* COUNTRY */}
+                  <div style={{ marginBottom:28 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:10, textTransform:"uppercase", letterSpacing:1 }}>Peyi</div>
+                    <input value={filterCountry} onChange={e => setFilterCountry(e.target.value)}
+                      placeholder="🌍 Tout peyi (kite vid pou tout)"
+                      style={{ width:"100%", padding:"12px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none" }} />
+                  </div>
+
+                  <button onClick={() => setShowFilter(false)} style={{ width:"100%", padding:"14px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer" }}>
+                    ✅ Aplike Filtre
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* HEADER */}
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 18px" }}>
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -1149,11 +1225,12 @@ export default function TiKeke() {
                         <span key={i} style={{ background:`${selectedProfile.color}25`, border:`1px solid ${selectedProfile.color}44`, borderRadius:20, padding:"4px 12px", fontSize:12 }}>{x}</span>
                       ))}
                     </div>
-                    <div style={{ display:"flex", gap:16, justifyContent:"center" }}>
+                    <div style={{ display:"flex", gap:16, justifyContent:"center", marginBottom:16 }}>
                       <div onClick={() => { handleSwipe("left", selectedProfile); setSelectedProfile(null); }} style={{ width:60, height:60, borderRadius:"50%", background:"rgba(239,68,68,0.15)", border:"2px solid rgba(239,68,68,0.5)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, cursor:"pointer" }}>✕</div>
                       <div onClick={() => { handleSwipe("right", selectedProfile); setSelectedProfile(null); }} style={{ width:70, height:70, borderRadius:"50%", background:"rgba(255,59,92,0.15)", border:"2px solid rgba(255,59,92,0.5)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:30, cursor:"pointer" }}>♥</div>
                       <div onClick={() => { handleSwipe("super", selectedProfile); setSelectedProfile(null); }} style={{ width:60, height:60, borderRadius:"50%", background:"rgba(59,130,246,0.15)", border:"2px solid rgba(59,130,246,0.5)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, cursor:"pointer" }}>⭐</div>
                     </div>
+                    <div onClick={() => { setReportTarget(selectedProfile); setSelectedProfile(null); setShowReport(true); }} style={{ textAlign:"center", fontSize:13, color:"rgba(255,59,92,0.6)", cursor:"pointer", padding:"8px" }}>🚩 Rapòte pwofil sa</div>
                   </div>
                 </div>
               </div>
@@ -1241,12 +1318,112 @@ export default function TiKeke() {
         )}
 
         {/* ── PROFILE ── */}
+        {/* PROFILE VIEWS MODAL */}
+        {tab === "profile" && showProfileViews && (
+          <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.97)", zIndex:300, overflowY:"auto" }}>
+            <div style={{ maxWidth:430, margin:"0 auto" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:12, padding:"16px 20px", borderBottom:"1px solid rgba(255,255,255,0.08)", position:"sticky", top:0, background:"#0F0F1A" }}>
+                <span onClick={() => setShowProfileViews(false)} style={{ fontSize:22, cursor:"pointer", color:"#FF3B5C" }}>←</span>
+                <div style={{ fontSize:18, fontWeight:800 }}>👁️ Moun ki Wè Pwofil Ou</div>
+              </div>
+              {!isPremium ? (
+                <div style={{ padding:"40px 20px", textAlign:"center" }}>
+                  <div style={{ fontSize:52, marginBottom:16 }}>🔒</div>
+                  <div style={{ fontSize:18, fontWeight:800, marginBottom:8 }}>Fonksyon Premium</div>
+                  <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:24 }}>Wè ki moun ki gade pwofil ou ak Premium</div>
+                  <button onClick={() => { setShowProfileViews(false); setShowPaywall(true); }} style={{ padding:"14px 32px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer" }}>💎 Jwenn Premium</button>
+                </div>
+              ) : (
+                <div style={{ padding:"16px 20px" }}>
+                  {profileViews.length === 0 ? (
+                    <div style={{ textAlign:"center", padding:"40px", color:"rgba(255,255,255,0.4)" }}>Pa gen moun ki wè pwofil ou toujou</div>
+                  ) : profileViews.map((v, i) => (
+                    <div key={i} style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 0", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+                      <div style={{ width:52, height:52, borderRadius:"50%", background:`linear-gradient(135deg,${v.color}44,${v.color}88)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, flexShrink:0 }}>{v.emoji}</div>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:15, fontWeight:700 }}>{v.name}, {v.age}</div>
+                        <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)" }}>📍 {v.city} · {v.time} pase</div>
+                      </div>
+                      <div onClick={() => handleSwipe("right", v)} style={{ width:40, height:40, borderRadius:"50%", background:"rgba(255,59,92,0.15)", border:"1px solid rgba(255,59,92,0.4)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, cursor:"pointer" }}>♥</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* REPORT MODAL */}
+        {showReport && reportTarget && (
+          <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.95)", zIndex:400, display:"flex", alignItems:"center", justifyContent:"center", padding:"0 24px" }}>
+            <div style={{ background:"linear-gradient(160deg,#12102A,#1E0A3A)", borderRadius:28, width:"100%", maxWidth:400, padding:"32px 28px" }}>
+              {reportSent ? (
+                <div style={{ textAlign:"center" }}>
+                  <div style={{ fontSize:52, marginBottom:16 }}>✅</div>
+                  <div style={{ fontSize:18, fontWeight:800, marginBottom:8 }}>Rapò Voye!</div>
+                  <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:24 }}>Nou ap egzamine pwofil {reportTarget.name} nan 24 è.</div>
+                  <button onClick={() => { setShowReport(false); setReportSent(false); setReportReason(""); }} style={{ padding:"12px 32px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer" }}>Ok</button>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
+                    <div style={{ fontSize:18, fontWeight:800 }}>🚩 Rapòte {reportTarget.name}</div>
+                    <span onClick={() => setShowReport(false)} style={{ fontSize:22, cursor:"pointer", color:"rgba(255,255,255,0.4)" }}>✕</span>
+                  </div>
+                  <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:16 }}>Chwazi rezon an:</div>
+                  {["Fo pwofil / Fake","Konpòtman abizif","Foto enappropriye","Spam / Reklam","Acosman / Harassment","Lòt rezon"].map((r, i) => (
+                    <div key={i} onClick={() => setReportReason(r)} style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px", marginBottom:8, borderRadius:14, cursor:"pointer", background: reportReason===r ? "rgba(255,59,92,0.15)" : "rgba(255,255,255,0.04)", border: reportReason===r ? "1px solid rgba(255,59,92,0.4)" : "1px solid rgba(255,255,255,0.08)" }}>
+                      <div style={{ width:20, height:20, borderRadius:"50%", border: reportReason===r ? "2px solid #FF3B5C" : "2px solid rgba(255,255,255,0.3)", background: reportReason===r ? "#FF3B5C" : "transparent" }} />
+                      <span style={{ fontSize:14 }}>{r}</span>
+                    </div>
+                  ))}
+                  <button onClick={() => { if (!reportReason) { alert("Chwazi yon rezon!"); return; } setReportSent(true); }} style={{ width:"100%", marginTop:16, padding:"14px", borderRadius:16, border:"none", background: reportReason ? "linear-gradient(135deg,#FF3B5C,#A855F7)" : "rgba(255,255,255,0.1)", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer" }}>
+                    🚩 Voye Rapò
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* PROMO CODE MODAL */}
+        {showPromo && (
+          <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.95)", zIndex:400, display:"flex", alignItems:"center", justifyContent:"center", padding:"0 24px" }}>
+            <div style={{ background:"linear-gradient(160deg,#12102A,#1E0A3A)", borderRadius:28, width:"100%", maxWidth:400, padding:"32px 28px" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
+                <div style={{ fontSize:18, fontWeight:800 }}>🎁 Kòd Promo</div>
+                <span onClick={() => { setShowPromo(false); setPromoCode(""); setPromoMsg(""); }} style={{ fontSize:22, cursor:"pointer", color:"rgba(255,255,255,0.4)" }}>✕</span>
+              </div>
+              <input value={promoCode} onChange={e => setPromoCode(e.target.value.toUpperCase())}
+                placeholder="Mete kòd ou la (ex: TIKEKE50)"
+                style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:16, outline:"none", marginBottom:12, textAlign:"center", letterSpacing:2, fontWeight:700 }} />
+              {promoMsg && <div style={{ textAlign:"center", fontSize:13, marginBottom:12, padding:"8px", borderRadius:10, background: promoMsg.includes("✅") ? "rgba(34,197,94,0.1)" : "rgba(255,59,92,0.1)", color: promoMsg.includes("✅") ? "#22C55E" : "#FF3B5C" }}>{promoMsg}</div>}
+              <button onClick={() => {
+                const promo = PROMO_CODES[promoCode];
+                if (!promo) { setPromoMsg("❌ Kòd sa pa valid!"); return; }
+                if (promo.discount === 100) {
+                  setPlan(promo.plan);
+                  setPromoMsg(`✅ Kòd aksepte! Plan ${promo.plan} aktive gratis!`);
+                  setTimeout(() => { setShowPromo(false); setPromoCode(""); setPromoMsg(""); }, 2000);
+                } else {
+                  setPromoMsg(`✅ ${promo.discount}% reduksyon sou plan ${promo.plan}! Ale nan peman pou aplike l.`);
+                  setTimeout(() => { setShowPromo(false); setShowPaywall(true); }, 2000);
+                }
+              }} style={{ width:"100%", padding:"14px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer" }}>
+                🎁 Aplike Kòd
+              </button>
+            </div>
+          </div>
+        )}
+
         {tab === "profile" && !showSettings && (
           <div style={{ padding:"24px 20px" }}>
             {/* PROFILE CARD */}
             <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", borderRadius:24, padding:24, textAlign:"center", marginBottom:20, position:"relative" }}>
               {/* Settings button */}
               <div onClick={() => setShowSettings(true)} style={{ position:"absolute", top:16, right:16, width:36, height:36, borderRadius:"50%", background:"rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:18 }}>⚙️</div>
+              <div onClick={() => setShowProfileViews(true)} style={{ position:"absolute", top:16, right:60, width:36, height:36, borderRadius:"50%", background:"rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:18 }}>👁️</div>
+              <div onClick={() => setShowPromo(true)} style={{ position:"absolute", top:16, right:104, width:36, height:36, borderRadius:"50%", background:"rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:18 }}>🎁</div>
               
               {/* Photo */}
               <div style={{ width:90, height:90, borderRadius:"50%", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", margin:"0 auto 12px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:44, overflow:"hidden" }}>
