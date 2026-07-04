@@ -217,7 +217,7 @@ const translations = {
     premium: "Premium", premiumSub: "Todo + Super Like",
     vip: "VIP", vipSub: "Todo + Insignia VIP ⭐",
     mo: "/mes", perMonth: "por mes",
-    card: "Tarjeta Crédito / Débito", moncash: "MonCash 🇭🇹",
+    card: "Tarjeta Crédito / Débito", applepay: "Apple Pay", moncash: "MonCash 🇭🇹",
     natcash: "NatCash", paypal: "PayPal",
     cardNum: "Número de tarjeta", expiry: "MM/AA", cvv: "CVV",
     phone: "Número de teléfono", email: "Email de PayPal",
@@ -226,6 +226,37 @@ const translations = {
     continue: "Continuar", cancel: "Cancelar", month: "mes",
     currentPlan: "Plan Actual", upgrade: "Mejorar Plan",
     active: "Activo ✓", enterDetails: "Ingresa tus datos de pago",
+  },
+  pt: {
+    appName: "Ti Kèkè", tagline: "Encontre seu amor, encontre amigos 💕",
+    discover: "Descobrir", matches: "Combinações", chat: "Chat", profile: "Perfil",
+    itsMatch: "É um Match! 🎉", matchMsg: "Vocês dois se curtiram!",
+    sendMsg: "Enviar mensagem...", age: "anos", km: "km",
+    editProfile: "Editar Perfil", noMore: "Sem mais perfis 😅",
+    comeBack: "Volte mais tarde!", newMatches: "Novos Matches", messages: "Mensagens",
+    online: "Online", lang: "Idioma",
+    login: "Entrar", register: "Criar Conta", email: "Email", password: "Senha",
+    name: "Seu nome", logout: "Sair", welcome: "Bem-vindo",
+    haveAccount: "Já tem uma conta?", noAccount: "Não tem conta?",
+    creating: "Criando...", connecting: "Entrando...",
+    unlock: "Desbloquear Ti Kèkè Premium",
+    unlockSub: "Acesso completo — chat, matches e mais!",
+    chooseplan: "Escolha seu Plano", choosepay: "Método de Pagamento",
+    pay: "Pagar Agora",
+    free: "Grátis", freeSub: "3 swipes por dia",
+    basic: "Básico", basicSub: "Swipes ilimitados",
+    premium: "Premium", premiumSub: "Tudo + Super Like",
+    vip: "VIP", vipSub: "Tudo + Emblema VIP ⭐",
+    mo: "/mês", perMonth: "por mês",
+    card: "Cartão Crédito / Débito", applepay: "Apple Pay", moncash: "MonCash 🇭🇹",
+    natcash: "NatCash", paypal: "PayPal",
+    cardNum: "Número do cartão", expiry: "MM/AA", cvv: "CVV",
+    phone: "Número de telefone", email: "Email do PayPal",
+    confirm: "Confirmar Pagamento", success: "Pagamento Bem-sucedido! 🎉",
+    successMsg: "Você agora tem acesso Premium!",
+    continue: "Continuar", cancel: "Cancelar", month: "mês",
+    currentPlan: "Plano Atual", upgrade: "Melhorar Plano",
+    active: "Ativo ✓", enterDetails: "Digite seus dados de pagamento",
   },
 };
 
@@ -238,6 +269,7 @@ const PLANS = [
 
 const PAY_METHODS = [
   { key: "card",     icon: "💳" },
+  { key: "applepay", icon: "🍎" },
   { key: "moncash",  icon: "📱" },
   { key: "natcash",  icon: "📲" },
   { key: "paypal",   icon: "🅿️" },
@@ -258,7 +290,14 @@ const initChats = {
 };
 
 export default function TiKeke() {
-  const [lang, setLang]           = useState("ht");
+  const [lang, setLang]           = useState(() => {
+    const saved = localStorage.getItem("tikeke_lang");
+    if (saved) return saved;
+    const nav = navigator.language?.slice(0,2).toLowerCase();
+    const supported = ["ht","fr","en","es","pt"];
+    const map = { fr:"fr", en:"en", es:"es", pt:"pt" };
+    return map[nav] || "ht";
+  });
   const [tab, setTab]             = useState("discover");
   const [cards, setCards]         = useState(profiles);
   const [matches, setMatches]     = useState([profiles[0], profiles[3]]);
@@ -485,6 +524,9 @@ export default function TiKeke() {
       if (!formData.phone || formData.phone.length < 8) { alert("Mete nimewo telefòn ou!"); return; }
     } else if (payMethod === "paypal") {
       if (!formData.email || !formData.email.includes("@")) { alert("Mete imel PayPal ou!"); return; }
+    } else if (payMethod === "applepay") {
+      // Apple Pay handled separately
+      return;
     }
     setPaying(true);
     setTimeout(() => {
@@ -724,7 +766,7 @@ export default function TiKeke() {
     { key:"profile",  icon:"👤", label:t.profile  },
   ];
 
-  const langList = [["ht","🇭🇹 Kreyòl"],["fr","🇫🇷 Français"],["en","🇺🇸 English"],["es","🇪🇸 Español"]];
+  const langList = [["ht","🇭🇹 Kreyòl"],["fr","🇫🇷 Français"],["en","🇺🇸 English"],["es","🇪🇸 Español"],["pt","🇧🇷 Português"]];
 
   // ── PAYWALL MODAL ──────────────────────────────────────────
   function PaywallModal() {
@@ -860,6 +902,40 @@ export default function TiKeke() {
                   <input style={inputStyle} placeholder={t.phone}
                     value={formData.phone}
                     onChange={e => setFormData(f => ({ ...f, phone: e.target.value }))} />
+                </div>
+              )}
+
+              {/* APPLE PAY */}
+              {payMethod === "applepay" && (
+                <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                  <div style={{ background:"linear-gradient(135deg,#1C1C1E,#2C2C2E)", borderRadius:16, padding:"20px", textAlign:"center" }}>
+                    <div style={{ fontSize:40, marginBottom:8 }}>🍎</div>
+                    <div style={{ fontWeight:800, fontSize:16 }}>Apple Pay</div>
+                    <div style={{ fontSize:12, color:"rgba(255,255,255,0.5)", marginTop:4 }}>Peman rapid ak Touch ID / Face ID</div>
+                  </div>
+                  <div onClick={async () => {
+                    if (!window.ApplePaySession || !ApplePaySession.canMakePayments()) {
+                      alert("Apple Pay pa disponib sou aparèy sa a. Itilize yon iPhone oswa Mac ak Safari.");
+                      return;
+                    }
+                    const request = {
+                      countryCode: "US",
+                      currencyCode: "USD",
+                      supportedNetworks: ["visa","masterCard","amex"],
+                      merchantCapabilities: ["supports3DS"],
+                      total: { label: `Ti Kèkè ${selectedPlan?.key}`, amount: String(selectedPlan?.price || "9.99") }
+                    };
+                    const session = new ApplePaySession(3, request);
+                    session.onvalidatemerchant = async (e) => {
+                      // Note: merchant validation requires server-side - for now show message
+                      alert("Pou aktive Apple Pay vre, ou bezwen yon sèvè backend. Kontakte support@tikeke.com.");
+                      session.abort();
+                    };
+                    session.begin();
+                  }} style={{ width:"100%", padding:"16px", borderRadius:16, border:"none", background:"#000", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>
+                    🍎 Peye ak Apple Pay
+                  </div>
+                  <div style={{ textAlign:"center", fontSize:11, color:"rgba(255,255,255,0.3)" }}>Disponib sou iPhone, iPad, Mac ak Safari sèlman</div>
                 </div>
               )}
 
@@ -1303,7 +1379,7 @@ export default function TiKeke() {
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, padding:16, marginBottom:16 }}>
                 <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                   {langList.map(([code,label]) => (
-                    <div key={code} onClick={() => setLang(code)} style={{ flex:1, minWidth:80, textAlign:"center", padding:"10px 6px", borderRadius:14, fontSize:12, cursor:"pointer", background:lang===code?"linear-gradient(135deg,#FF3B5C,#A855F7)":"rgba(255,255,255,0.06)", fontWeight:lang===code?700:400 }}>{label}</div>
+                    <div key={code} onClick={() => { setLang(code); localStorage.setItem("tikeke_lang", code); }} style={{ flex:1, minWidth:80, textAlign:"center", padding:"10px 6px", borderRadius:14, fontSize:12, cursor:"pointer", background:lang===code?"linear-gradient(135deg,#FF3B5C,#A855F7)":"rgba(255,255,255,0.06)", fontWeight:lang===code?700:400 }}>{label}</div>
                   ))}
                 </div>
               </div>
