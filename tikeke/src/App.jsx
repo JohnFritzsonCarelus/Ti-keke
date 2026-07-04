@@ -318,6 +318,7 @@ export default function TiKeke() {
 
   // AUTH STATE
   const [user, setUser] = useState(null);
+  const [appLoading, setAppLoading] = useState(true);
   const isAdmin = user?.email === "djallmixhaiti@gmail.com";
   const [authMode, setAuthMode] = useState("login");
   const [authMethod, setAuthMethod] = useState("email"); // email | phone
@@ -419,7 +420,9 @@ export default function TiKeke() {
         localStorage.removeItem("tikeke_session");
       }
     }
-    loadSession();
+    loadSession().finally(() => {
+      setTimeout(() => setAppLoading(false), 1800);
+    });
   }, []);
 
   async function handleAuth() {
