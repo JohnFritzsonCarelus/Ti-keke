@@ -382,6 +382,8 @@ export default function TiKeke() {
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [verifyStep, setVerifyStep] = useState("intro"); // intro | upload | pending | done
   const [verifyPhoto, setVerifyPhoto] = useState(null);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [promoMsg, setPromoMsg] = useState("");
   const PROMO_CODES = { "TIKEKE50": { discount: 50, plan: "premium" }, "VIP100": { discount: 100, plan: "vip" }, "HAITI2025": { discount: 30, plan: "basic" } };
@@ -490,8 +492,50 @@ export default function TiKeke() {
 
   function handleLogout() {
     localStorage.removeItem("tikeke_session");
+    localStorage.removeItem("tikeke_lang");
     setUser(null);
     setSetupData({ name:"", age:"", gender:"", country:"", city:"", bio:"", avatar:"🧑🏾", interests:[], photos:[] });
+    setTab("discover");
+    setActiveChat(null);
+  }
+
+  async function handleDeleteAccount() {
+    if (!user?.uid) return;
+    try {
+      // Delete from Firestore
+      const headers = {};
+      if (user.idToken) headers["Authorization"] = `Bearer ${user.idToken}`;
+      await fetch(`${FIRESTORE_URL}/users/${user.uid}`, { method:"DELETE", headers });
+      // Delete Firebase Auth account
+      if (user.idToken) {
+        await fetch(`${FIREBASE_AUTH_URL}:delete?key=${FIREBASE_API_KEY}`, {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ idToken: user.idToken })
+        });
+      }
+    } catch(e) { console.log("Delete error:", e); }
+    handleLogout();
+    alert("✅ Kont ou efase nèt. Mèsi pou konfyans ou nan Ti Kèkè.");
+  }
+
+  async function requestPushPermission() {
+    if (!("Notification" in window)) { alert("Navigatè ou pa sipòte notifikasyon"); return; }
+    const perm = await Notification.requestPermission();
+    if (perm === "granted") {
+      setPushEnabled(true);
+      new Notification("Ti Kèkè 💕", { body:"Notifikasyon aktive! Ou ap resevwa alèt pou matche ak mesaj.", icon:"/favicon.ico" });
+    } else {
+      alert("Ou refize notifikasyon — ou ka aktive yo nan paramèt navigatè ou.");
+    }
+  }
+
+  function blockUser(person) {
+    if (!person) return;
+    const name = person.name || person;
+    setBlockedUsers(b => b.includes(name) ? b : [...b, name]);
+    saveUserProfile({ ...user, blockedUsers: [...(user.blockedUsers||[]), name] }, user?.idToken);
+    alert(`🚫 ${name} bloke. Li p ap parèt nan rechèch ou ankò.`);
   }
 
   // PAYWALL STATE
@@ -1477,7 +1521,8 @@ export default function TiKeke() {
                   <div style={{ fontSize:52, marginBottom:16 }}>✅</div>
                   <div style={{ fontSize:18, fontWeight:800, marginBottom:8 }}>Rapò Voye!</div>
                   <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:24 }}>Nou ap egzamine pwofil {reportTarget.name} nan 24 è.</div>
-                  <button onClick={() => { setShowReport(false); setReportSent(false); setReportReason(""); }} style={{ padding:"12px 32px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer" }}>Ok</button>
+                  <button onClick={() => { setShowReport(false); setReportSent(false); setReportReason(""); }} style={{ padding:"12px 32px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer", marginBottom:12 }}>Ok</button>
+                  <div onClick={() => { blockUser(reportTarget); setShowReport(false); setReportSent(false); setReportReason(""); }} style={{ fontSize:13, color:"#FF3B5C", cursor:"pointer", fontWeight:700 }}>🚫 Bloke {reportTarget?.name} tou</div>
                 </div>
               ) : (
                 <div>
@@ -1780,6 +1825,15 @@ export default function TiKeke() {
               {/* NOTIFIKASYON */}
               <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🔔 Notifikasyon</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:15 }}>📱 Notifikasyon Push</div>
+                    <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{pushEnabled ? "Aktive ✓" : "Klike pou aktive"}</div>
+                  </div>
+                  <div onClick={() => pushEnabled ? setPushEnabled(false) : requestPushPermission()} style={{ width:44, height:24, borderRadius:12, background: pushEnabled ? "linear-gradient(135deg,#FF3B5C,#A855F7)" : "rgba(255,255,255,0.15)", position:"relative", cursor:"pointer", transition:"background 0.2s" }}>
+                    <div style={{ position:"absolute", top:3, left: pushEnabled ? 22 : 3, width:18, height:18, borderRadius:"50%", background:"#fff", transition:"left 0.2s" }} />
+                  </div>
+                </div>
                 {[
                   { label:"Nouvo Matche", val: notifMatch, set: setNotifMatch },
                   { label:"Nouvo Mesaj", val: notifMsg, set: setNotifMsg },
@@ -1821,7 +1875,7 @@ export default function TiKeke() {
                       <span style={{ fontSize:20 }}>🚪</span>
                       <div style={{ flex:1, fontSize:15 }}>Dekonekte</div>
                     </div>
-                    <div onClick={() => { if(window.confirm("Ou sèten ou vle siprime kont ou? Tout done ou ap efase pou toujou.")) { handleLogout(); }}} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", cursor:"pointer" }}>
+                    <div onClick={() => setDeleteConfirm(true)} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", cursor:"pointer" }}>
                       <span style={{ fontSize:20 }}>🗑️</span>
                       <div style={{ flex:1, fontSize:15, color:"#FF3B5C" }}>Siprime Kont</div>
                     </div>
@@ -2117,6 +2171,27 @@ export default function TiKeke() {
                 <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* DELETE ACCOUNT CONFIRM */}
+      {deleteConfirm && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.95)", zIndex:600, display:"flex", alignItems:"center", justifyContent:"center", padding:"0 24px" }}>
+          <div style={{ background:"linear-gradient(160deg,#12102A,#1E0A3A)", borderRadius:28, width:"100%", maxWidth:400, padding:"32px 28px", textAlign:"center" }}>
+            <div style={{ fontSize:52, marginBottom:12 }}>⚠️</div>
+            <div style={{ fontSize:20, fontWeight:900, marginBottom:8, color:"#FF3B5C" }}>Siprime Kont?</div>
+            <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:28, lineHeight:1.7 }}>
+              Aksyon sa <strong>pa ka defèt</strong>. Tout done ou — foto, matche, mesaj — ap efase pou toujou.
+            </div>
+            <button onClick={async () => { setDeleteConfirm(false); await handleDeleteAccount(); }}
+              style={{ width:"100%", padding:"14px", borderRadius:16, border:"none", background:"#FF3B5C", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
+              🗑️ Wi, Efase Kont Mwen
+            </button>
+            <button onClick={() => setDeleteConfirm(false)}
+              style={{ width:"100%", padding:"13px", borderRadius:16, border:"1px solid rgba(255,255,255,0.15)", background:"transparent", color:"rgba(255,255,255,0.6)", fontSize:14, cursor:"pointer" }}>
+              Anile
+            </button>
           </div>
         </div>
       )}
