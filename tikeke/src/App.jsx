@@ -310,6 +310,7 @@ export default function TiKeke() {
 
   // AUTH STATE
   const [user, setUser] = useState(null);
+  const isAdmin = user?.email === "djallmixhaiti@gmail.com";
   const [authMode, setAuthMode] = useState("login");
   const [authMethod, setAuthMethod] = useState("email"); // email | phone
   const [authPhone, setAuthPhone] = useState("");
@@ -363,6 +364,7 @@ export default function TiKeke() {
   const [reportSent, setReportSent] = useState(false);
   // Promo
   const [showPromo, setShowPromo] = useState(false);
+  const [adminStats, setAdminStats] = useState({ users:0, premium:0, revenue:0, today:0 });
   const [promoCode, setPromoCode] = useState("");
   const [promoMsg, setPromoMsg] = useState("");
   const PROMO_CODES = { "TIKEKE50": { discount: 50, plan: "premium" }, "VIP100": { discount: 100, plan: "vip" }, "HAITI2025": { discount: 30, plan: "basic" } };
@@ -573,6 +575,37 @@ export default function TiKeke() {
     setFormData({ cardNum:"", expiry:"", cvv:"", phone:"", email:"" });
   }
 
+
+  // ── ADMIN STATS ──
+  useEffect(() => {
+    if (!isAdmin) return;
+    async function loadStats() {
+      try {
+        const res = await fetch(`${FIRESTORE_URL}/users`, {
+          headers: user?.idToken ? { Authorization: `Bearer ${user.idToken}` } : {}
+        });
+        const data = await res.json();
+        if (data.documents) {
+          const docs = data.documents;
+          const total = docs.length;
+          const premium = docs.filter(d => d.fields?.plan?.stringValue && d.fields.plan.stringValue !== "free").length;
+          const revenue = docs.reduce((sum, d) => {
+            const p = d.fields?.plan?.stringValue;
+            if (p === "basic") return sum + 4.99;
+            if (p === "premium") return sum + 9.99;
+            if (p === "vip") return sum + 19.99;
+            return sum;
+          }, 0);
+          const today = docs.filter(d => {
+            const c = d.fields?.createdAt?.stringValue;
+            return c && new Date(c).toDateString() === new Date().toDateString();
+          }).length;
+          setAdminStats({ users: total, premium, revenue: revenue.toFixed(2), today });
+        }
+      } catch(e) { console.log("Admin stats error:", e); }
+    }
+    loadStats();
+  }, [isAdmin, user?.idToken]);
 
   // ── PAYPAL SDK ──
   useEffect(() => {
@@ -793,6 +826,7 @@ export default function TiKeke() {
     { key:"matches",  icon:"💞", label:t.matches  },
     { key:"chat",     icon:"💬", label:t.chat     },
     { key:"profile",  icon:"👤", label:t.profile  },
+    ...(isAdmin ? [{ key:"admin", icon:"📊", label:"Admin" }] : []),
   ];
 
   const langList = [["ht","🇭🇹 Kreyòl"],["fr","🇫🇷 Français"],["en","🇺🇸 English"],["es","🇪🇸 Español"],["pt","🇧🇷 Português"]];
@@ -1930,6 +1964,77 @@ export default function TiKeke() {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── ADMIN ── */}
+      {tab === "admin" && isAdmin && (
+        <div style={{ padding:"20px", overflowY:"auto", paddingBottom:100 }}>
+          <div style={{ fontSize:20, fontWeight:900, marginBottom:20, background:"linear-gradient(90deg,#FF3B5C,#A855F7)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>📊 Tableau de Bord Admin</div>
+
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:20 }}>
+            {[
+              { label:"Total Itilizatè", value: adminStats.users, icon:"👥", color:"#3B82F6" },
+              { label:"Nouvo Jodi a", value: adminStats.today, icon:"🆕", color:"#22C55E" },
+              { label:"Manm Premium", value: adminStats.premium, icon:"💎", color:"#A855F7" },
+              { label:"Revni Total", value: `$${adminStats.revenue}`, icon:"💰", color:"#F59E0B" },
+            ].map((s, i) => (
+              <div key={i} style={{ background:`${s.color}15`, border:`1px solid ${s.color}33`, borderRadius:20, padding:"18px 16px" }}>
+                <div style={{ fontSize:28, marginBottom:6 }}>{s.icon}</div>
+                <div style={{ fontSize:22, fontWeight:900, color:s.color }}>{s.value}</div>
+                <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:4 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, padding:"18px", marginBottom:16 }}>
+            <div style={{ fontSize:14, fontWeight:800, marginBottom:14 }}>🎁 Kòd Promo Aktif</div>
+            {Object.entries(PROMO_CODES).map(([code, val], i) => (
+              <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+                <div>
+                  <div style={{ fontSize:14, fontWeight:700, color:"#FF3B5C" }}>{code}</div>
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)" }}>{val.discount}% reduksyon · Plan {val.plan}</div>
+                </div>
+                <div style={{ fontSize:11, background:"rgba(34,197,94,0.15)", color:"#22C55E", padding:"3px 10px", borderRadius:8, fontWeight:700 }}>AKTIF</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, padding:"18px", marginBottom:16 }}>
+            <div style={{ fontSize:14, fontWeight:800, marginBottom:14 }}>📈 Distribisyon Plan</div>
+            {[
+              { plan:"Free", color:"#6B7280", pct: adminStats.users > 0 ? Math.round(((adminStats.users - adminStats.premium) / adminStats.users) * 100) : 0 },
+              { plan:"Premium", color:"#A855F7", pct: adminStats.users > 0 ? Math.round((adminStats.premium / adminStats.users) * 100) : 0 },
+            ].map((p, i) => (
+              <div key={i} style={{ marginBottom:12 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, marginBottom:6 }}>
+                  <span>{p.plan}</span><span style={{ color:p.color }}>{p.pct}%</span>
+                </div>
+                <div style={{ height:8, background:"rgba(255,255,255,0.08)", borderRadius:4, overflow:"hidden" }}>
+                  <div style={{ width:`${p.pct}%`, height:"100%", background:p.color, borderRadius:4 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, padding:"18px" }}>
+            <div style={{ fontSize:14, fontWeight:800, marginBottom:14 }}>⚡ Aksyon Rapid</div>
+            {[
+              { label:"Eksporte Estatistik", icon:"📥", action: () => {
+                const blob = new Blob([JSON.stringify(adminStats, null, 2)], {type:"application/json"});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a"); a.href=url; a.download="tikeke-stats.json"; a.click();
+              }},
+              { label:"Rafraichi Done", icon:"🔄", action: () => window.location.reload() },
+              { label:"Kontakte Sipò", icon:"📧", action: () => window.open("mailto:support@tikeke.com") },
+            ].map((a, i, arr) => (
+              <div key={i} onClick={a.action} style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 0", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none", cursor:"pointer" }}>
+                <span style={{ fontSize:22 }}>{a.icon}</span>
+                <div style={{ flex:1, fontSize:15 }}>{a.label}</div>
+                <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
