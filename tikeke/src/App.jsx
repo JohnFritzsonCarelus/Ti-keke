@@ -345,6 +345,8 @@ export default function TiKeke() {
   const [notifSuperLike, setNotifSuperLike] = useState(true);
   const [legalPage, setLegalPage] = useState(null);
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const [touchStartX, setTouchStartX] = useState(null);
   const [showFilter, setShowFilter] = useState(false);
   const [showProfileViews, setShowProfileViews] = useState(false);
   const [paypalLoaded, setPaypalLoaded] = useState(false);
@@ -1419,7 +1421,7 @@ export default function TiKeke() {
                   <div style={{ fontSize:18, fontWeight:700 }}>{t.noMore}</div>
                 </div>
               ) : cards.map((p, i) => (
-                <div key={p.id} onClick={() => setSelectedProfile(p)} style={{ position:"relative", borderRadius:20, overflow:"hidden", cursor:"pointer", aspectRatio:"0.72", background:"#1A1A2E", boxShadow:"0 4px 20px rgba(0,0,0,0.4)" }}>
+                <div key={p.id} onClick={() => { setSelectedProfile(p); setPhotoIndex(0); }} style={{ position:"relative", borderRadius:20, overflow:"hidden", cursor:"pointer", aspectRatio:"0.72", background:"#1A1A2E", boxShadow:"0 4px 20px rgba(0,0,0,0.4)" }}>
                   {p.photoUrl
                     ? <img src={p.photoUrl} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                     : <div style={{ width:"100%", height:"100%", background:`linear-gradient(160deg,${p.color}55,${p.color}99)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:72 }}>{p.emoji}</div>
@@ -1456,14 +1458,59 @@ export default function TiKeke() {
             {selectedProfile && (
               <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.95)", zIndex:300, overflowY:"auto" }}>
                 <div style={{ maxWidth:430, margin:"0 auto" }}>
-                  <div style={{ position:"relative", height:400 }}>
-                    {selectedProfile.photoUrl
-                      ? <img src={selectedProfile.photoUrl} alt={selectedProfile.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                      : <div style={{ width:"100%", height:"100%", background:`linear-gradient(160deg,${selectedProfile.color}44,${selectedProfile.color}88)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:120 }}>{selectedProfile.emoji}</div>
-                    }
+                  <div style={{ position:"relative", height:420, overflow:"hidden", userSelect:"none" }}
+                    onTouchStart={e => setTouchStartX(e.touches[0].clientX)}
+                    onTouchEnd={e => {
+                      if (touchStartX === null) return;
+                      const diff = touchStartX - e.changedTouches[0].clientX;
+                      const allPhotos = [selectedProfile.photoUrl, ...(selectedProfile.photos||[]).filter(p => p !== selectedProfile.photoUrl)].filter(Boolean);
+                      if (diff > 50 && photoIndex < allPhotos.length - 1) setPhotoIndex(i => i + 1);
+                      if (diff < -50 && photoIndex > 0) setPhotoIndex(i => i - 1);
+                      setTouchStartX(null);
+                    }}
+                    onMouseDown={e => setTouchStartX(e.clientX)}
+                    onMouseUp={e => {
+                      if (touchStartX === null) return;
+                      const diff = touchStartX - e.clientX;
+                      const allPhotos = [selectedProfile.photoUrl, ...(selectedProfile.photos||[]).filter(p => p !== selectedProfile.photoUrl)].filter(Boolean);
+                      if (diff > 50 && photoIndex < allPhotos.length - 1) setPhotoIndex(i => i + 1);
+                      if (diff < -50 && photoIndex > 0) setPhotoIndex(i => i - 1);
+                      setTouchStartX(null);
+                    }}>
+                    {(() => {
+                      const allPhotos = [selectedProfile.photoUrl, ...(selectedProfile.photos||[]).filter(p => p !== selectedProfile.photoUrl)].filter(Boolean);
+                      const currentPhoto = allPhotos[photoIndex];
+                      return currentPhoto
+                        ? <img src={currentPhoto} alt={selectedProfile.name} style={{ width:"100%", height:"100%", objectFit:"cover", pointerEvents:"none" }} />
+                        : <div style={{ width:"100%", height:"100%", background:`linear-gradient(160deg,${selectedProfile.color}44,${selectedProfile.color}88)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:120 }}>{selectedProfile.emoji}</div>;
+                    })()}
+
+                    {/* PHOTO DOTS */}
+                    {(() => {
+                      const allPhotos = [selectedProfile.photoUrl, ...(selectedProfile.photos||[]).filter(p => p !== selectedProfile.photoUrl)].filter(Boolean);
+                      return allPhotos.length > 1 ? (
+                        <div style={{ position:"absolute", top:12, left:0, right:0, display:"flex", justifyContent:"center", gap:5 }}>
+                          {allPhotos.map((_, i) => (
+                            <div key={i} onClick={() => setPhotoIndex(i)} style={{ height:3, width: i === photoIndex ? 20 : 8, borderRadius:3, background: i === photoIndex ? "#fff" : "rgba(255,255,255,0.4)", transition:"all 0.2s", cursor:"pointer" }} />
+                          ))}
+                        </div>
+                      ) : null;
+                    })()}
+
+                    {/* LEFT/RIGHT ARROWS */}
+                    {(() => {
+                      const allPhotos = [selectedProfile.photoUrl, ...(selectedProfile.photos||[]).filter(p => p !== selectedProfile.photoUrl)].filter(Boolean);
+                      return (
+                        <>
+                          {photoIndex > 0 && <div onClick={() => setPhotoIndex(i => i-1)} style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", width:32, height:32, borderRadius:"50%", background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:16 }}>‹</div>}
+                          {photoIndex < allPhotos.length - 1 && <div onClick={() => setPhotoIndex(i => i+1)} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", width:32, height:32, borderRadius:"50%", background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:16 }}>›</div>}
+                        </>
+                      );
+                    })()}
+
                     <div onClick={() => setSelectedProfile(null)} style={{ position:"absolute", top:16, left:16, width:36, height:36, borderRadius:"50%", background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:18 }}>←</div>
                     {(selectedProfile.vip || selectedProfile.premium) && (
-                      <div style={{ position:"absolute", top:16, right:16, background:"#009688", color:"#fff", fontSize:11, fontWeight:800, padding:"3px 10px", borderRadius:4 }}>VIP</div>
+                      <div style={{ position:"absolute", top:16, right:16, background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:11, fontWeight:800, padding:"3px 10px", borderRadius:8 }}>✨ VIP</div>
                     )}
                   </div>
                   <div style={{ padding:"24px 20px" }}>
