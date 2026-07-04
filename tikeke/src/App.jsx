@@ -379,6 +379,7 @@ export default function TiKeke() {
   const [verifyPhoto, setVerifyPhoto] = useState(null);
   const [pushEnabled, setPushEnabled] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [promoMsg, setPromoMsg] = useState("");
   const PROMO_CODES = { "TIKEKE50": { discount: 50, plan: "premium" }, "VIP100": { discount: 100, plan: "vip" }, "HAITI2025": { discount: 30, plan: "basic" } };
@@ -1986,9 +1987,10 @@ export default function TiKeke() {
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:32 }}>
                 {user ? (
                   <>
-                    <div onClick={handleLogout} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom:"1px solid rgba(255,255,255,0.06)", cursor:"pointer" }}>
+                    <div onClick={() => setLogoutConfirm(true)} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom:"1px solid rgba(255,255,255,0.06)", cursor:"pointer" }}>
                       <span style={{ fontSize:20 }}>🚪</span>
                       <div style={{ flex:1, fontSize:15 }}>Dekonekte</div>
+                      <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
                     </div>
                     <div onClick={() => setDeleteConfirm(true)} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", cursor:"pointer" }}>
                       <span style={{ fontSize:20 }}>🗑️</span>
@@ -2286,6 +2288,26 @@ export default function TiKeke() {
                 <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* LOGOUT CONFIRM */}
+      {logoutConfirm && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:600, display:"flex", alignItems:"flex-end", justifyContent:"center" }}>
+          <div style={{ background:"linear-gradient(160deg,#12102A,#1E0A3A)", borderRadius:"28px 28px 0 0", width:"100%", maxWidth:430, padding:"32px 28px 48px", textAlign:"center" }}>
+            <div style={{ width:40, height:4, borderRadius:2, background:"rgba(255,255,255,0.2)", margin:"0 auto 24px" }} />
+            <div style={{ fontSize:36, marginBottom:12 }}>🚪</div>
+            <div style={{ fontSize:18, fontWeight:900, marginBottom:8 }}>Dekonekte?</div>
+            <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:28 }}>Ou pral soti nan kont ou. Done ou yo ap rete konsève.</div>
+            <button onClick={() => { setLogoutConfirm(false); handleLogout(); }}
+              style={{ width:"100%", padding:"14px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
+              Wi, Dekonekte
+            </button>
+            <button onClick={() => setLogoutConfirm(false)}
+              style={{ width:"100%", padding:"13px", borderRadius:16, border:"1px solid rgba(255,255,255,0.15)", background:"transparent", color:"rgba(255,255,255,0.6)", fontSize:15, cursor:"pointer" }}>
+              Anile
+            </button>
           </div>
         </div>
       )}
