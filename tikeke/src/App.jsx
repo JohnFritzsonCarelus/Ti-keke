@@ -299,15 +299,8 @@ export default function TiKeke() {
     return map[nav] || "ht";
   });
   const [tab, setTab]             = useState("discover");
-  const [cards, setCards]         = useState(() => {
-    // Sort by common interests with user (algorithm)
-    return [...profiles].sort((a, b) => {
-      const userInterests = ["Danse 💃","Mizik 🎸","Vwayaj ✈️"];
-      const scoreA = a.interests.filter(i => userInterests.includes(i)).length;
-      const scoreB = b.interests.filter(i => userInterests.includes(i)).length;
-      return scoreB - scoreA;
-    });
-  });
+  const [cards, setCards]         = useState(profiles);
+  const [cardsLoading, setCardsLoading] = useState(false);
   const [matches, setMatches]     = useState([profiles[0], profiles[3]]);
   const [showMatch, setShowMatch] = useState(null);
   const [swipeDir, setSwipeDir]   = useState(null);
@@ -640,6 +633,63 @@ export default function TiKeke() {
     setFormData({ cardNum:"", expiry:"", cvv:"", phone:"", email:"" });
   }
 
+
+  // ── LOAD REAL USERS ──
+  useEffect(() => {
+    async function fetchUsers() {
+      if (!user?.uid) return;
+      setCardsLoading(true);
+      try {
+        const res = await fetch(`${FIRESTORE_URL}/users?pageSize=50`, {
+          headers: user?.idToken ? { Authorization: `Bearer ${user.idToken}` } : {}
+        });
+        const data = await res.json();
+        if (data.documents && data.documents.length > 0) {
+          const realUsers = data.documents
+            .map(doc => {
+              const f = doc.fields || {};
+              const uid = doc.name.split("/").pop();
+              if (uid === user.uid) return null; // skip self
+              if (!f.profileComplete?.booleanValue) return null; // skip incomplete
+              return {
+                id: uid,
+                name: f.name?.stringValue || "Itilizatè",
+                age: Number(f.age?.integerValue || f.age?.stringValue || 25),
+                city: f.city?.stringValue || "",
+                country: f.country?.stringValue || "",
+                bio: f.bio?.stringValue || "",
+                photoUrl: f.photoUrl?.stringValue || null,
+                photos: (f.photos?.arrayValue?.values || []).map(v => v.stringValue).filter(Boolean),
+                interests: (f.interests?.arrayValue?.values || []).map(v => v.stringValue).filter(Boolean),
+                gender: f.gender?.stringValue || "",
+                emoji: f.avatar?.stringValue || "🧑🏾",
+                color: "#FF6B9D",
+                online: false,
+                verified: f.verificationStatus?.stringValue === "verified",
+                vip: f.plan?.stringValue === "vip" || f.plan?.stringValue === "premium",
+                km: Math.floor(Math.random() * 50) + 1,
+              };
+            })
+            .filter(Boolean);
+
+          // Sort by common interests (algorithm)
+          const userInterests = Array.isArray(user.interests) ? user.interests : [];
+          realUsers.sort((a, b) => {
+            const scoreA = a.interests.filter(i => userInterests.includes(i)).length;
+            const scoreB = b.interests.filter(i => userInterests.includes(i)).length;
+            return scoreB - scoreA;
+          });
+
+          if (realUsers.length > 0) {
+            setCards(realUsers);
+          }
+          // If no real users yet, keep demo profiles
+        }
+      } catch(e) { console.log("Fetch users error:", e); }
+      setCardsLoading(false);
+    }
+    fetchUsers();
+  }, [user?.uid]);
 
   // ── ADMIN STATS ──
   useEffect(() => {
