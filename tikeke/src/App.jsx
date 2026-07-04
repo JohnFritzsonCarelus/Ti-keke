@@ -2068,7 +2068,7 @@ export default function TiKeke() {
                       style={{ width:"100%", padding:"14px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
                       Voye Evalyasyon 💕
                     </button>
-                    <div onClick={() => setShowRating(false)} style={{ fontSize:13, color:"rgba(255,255,255,0.3)", cursor:"pointer" }}>Anile</div>
+                    <div onClick={() => setShowRating(false)} style={{ fontSize:13, color:"rgba(255,255,255,0.3)", cursor:"pointer" }}>{t.cancel}</div>
                   </div>
                 </div>
               )}
@@ -2103,11 +2103,11 @@ export default function TiKeke() {
               <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🔒 {t.security}</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 <div onClick={async () => {
-                  if (!user?.email) { alert("Ou pa konekte!"); return; }
+                  if (!user?.email) { alert(lang==="fr"?"Vous n'êtes pas connecté!":lang==="en"?"You are not logged in!":lang==="es"?"¡No estás conectado!":lang==="pt"?"Você não está conectado!":"Ou pa konekte!"); return; }
                   try {
                     await firebaseResetPassword(user.email);
-                    alert("✅ Nou voye yon imel pou chanje modpas ou nan " + user.email);
-                  } catch(e) { alert("Erè — eseye ankò"); }
+                    alert("✅ " + (lang==="fr"?"Email envoyé à ":lang==="en"?"Email sent to ":lang==="es"?"Email enviado a ":lang==="pt"?"Email enviado para ":"Imel voye nan ") + user.email);
+                  } catch(e) { alert(lang==="fr"?"Erreur — réessayez":lang==="en"?"Error — try again":lang==="es"?"Error — inténtalo de nuevo":lang==="pt"?"Erro — tente novamente":"Erè — eseye ankò"); }
                 }} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", cursor:"pointer" }}>
                   <span style={{ fontSize:20 }}>🔑</span>
                   <div style={{ flex:1 }}>
@@ -2124,18 +2124,18 @@ export default function TiKeke() {
                   <>
                     <div onClick={() => setLogoutConfirm(true)} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom:"1px solid rgba(255,255,255,0.06)", cursor:"pointer" }}>
                       <span style={{ fontSize:20 }}>🚪</span>
-                      <div style={{ flex:1, fontSize:15 }}>Dekonekte</div>
+                      <div style={{ flex:1, fontSize:15 }}>{t.logout}</div>
                       <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
                     </div>
                     <div onClick={() => setDeleteConfirm(true)} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", cursor:"pointer" }}>
                       <span style={{ fontSize:20 }}>🗑️</span>
-                      <div style={{ flex:1, fontSize:15, color:"#FF3B5C" }}>Siprime Kont</div>
+                      <div style={{ flex:1, fontSize:15, color:"#FF3B5C" }}>{t.deleteAccount}</div>
                     </div>
                   </>
                 ) : (
                   <div onClick={() => { setAuthMode("choice"); setShowAuthPopup(true); setShowSettings(false); }} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", cursor:"pointer" }}>
                     <span style={{ fontSize:20 }}>🔑</span>
-                    <div style={{ flex:1, fontSize:15, color:"#FF3B5C", fontWeight:700 }}>Konekte / Kreye Kont</div>
+                    <div style={{ flex:1, fontSize:15, color:"#FF3B5C", fontWeight:700 }}>{t.login} / {t.register}</div>
                     <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
                   </div>
                 )}
@@ -2433,11 +2433,11 @@ export default function TiKeke() {
           <div style={{ background:"linear-gradient(160deg,#12102A,#1E0A3A)", borderRadius:"28px 28px 0 0", width:"100%", maxWidth:430, padding:"32px 28px 48px", textAlign:"center" }}>
             <div style={{ width:40, height:4, borderRadius:2, background:"rgba(255,255,255,0.2)", margin:"0 auto 24px" }} />
             <div style={{ fontSize:36, marginBottom:12 }}>🚪</div>
-            <div style={{ fontSize:18, fontWeight:900, marginBottom:8 }}>Dekonekte?</div>
-            <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:28 }}>Ou pral soti nan kont ou. Done ou yo ap rete konsève.</div>
+            <div style={{ fontSize:18, fontWeight:900, marginBottom:8 }}>{t.confirmLogout}</div>
+            <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:28 }}>{t.confirmLogoutMsg}</div>
             <button onClick={() => { setLogoutConfirm(false); handleLogout(); }}
               style={{ width:"100%", padding:"14px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
-              Wi, Dekonekte
+              {t.yesLogout}
             </button>
             <button onClick={() => setLogoutConfirm(false)}
               style={{ width:"100%", padding:"13px", borderRadius:16, border:"1px solid rgba(255,255,255,0.15)", background:"transparent", color:"rgba(255,255,255,0.6)", fontSize:15, cursor:"pointer" }}>
@@ -2452,13 +2452,13 @@ export default function TiKeke() {
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.95)", zIndex:600, display:"flex", alignItems:"center", justifyContent:"center", padding:"0 24px" }}>
           <div style={{ background:"linear-gradient(160deg,#12102A,#1E0A3A)", borderRadius:28, width:"100%", maxWidth:400, padding:"32px 28px", textAlign:"center" }}>
             <div style={{ fontSize:52, marginBottom:12 }}>⚠️</div>
-            <div style={{ fontSize:20, fontWeight:900, marginBottom:8, color:"#FF3B5C" }}>Siprime Kont?</div>
+            <div style={{ fontSize:20, fontWeight:900, marginBottom:8, color:"#FF3B5C" }}>{t.confirmDelete}</div>
             <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:28, lineHeight:1.7 }}>
-              Aksyon sa <strong>pa ka defèt</strong>. Tout done ou — foto, matche, mesaj — ap efase pou toujou.
+              {t.confirmDeleteMsg}
             </div>
             <button onClick={async () => { setDeleteConfirm(false); await handleDeleteAccount(); }}
               style={{ width:"100%", padding:"14px", borderRadius:16, border:"none", background:"#FF3B5C", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
-              🗑️ Wi, Efase Kont Mwen
+              🗑️ {t.yesDelete}
             </button>
             <button onClick={() => setDeleteConfirm(false)}
               style={{ width:"100%", padding:"13px", borderRadius:16, border:"1px solid rgba(255,255,255,0.15)", background:"transparent", color:"rgba(255,255,255,0.6)", fontSize:14, cursor:"pointer" }}>
@@ -2486,7 +2486,7 @@ export default function TiKeke() {
                 <button onClick={() => setVerifyStep("upload")} style={{ width:"100%", padding:"14px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#3B82F6,#A855F7)", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
                   📸 Kòmanse Verifikasyon
                 </button>
-                <div onClick={() => setShowVerifyModal(false)} style={{ fontSize:13, color:"rgba(255,255,255,0.3)", cursor:"pointer" }}>Anile</div>
+                <div onClick={() => setShowVerifyModal(false)} style={{ fontSize:13, color:"rgba(255,255,255,0.3)", cursor:"pointer" }}>{t.cancel}</div>
               </div>
             )}
             {verifyStep === "upload" && (
