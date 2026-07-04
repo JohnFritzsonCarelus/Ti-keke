@@ -291,12 +291,13 @@ const initChats = {
 
 export default function TiKeke() {
   const [lang, setLang]           = useState(() => {
+    // Si moun te deja chwazi yon lang, respekte chwa a
     const saved = localStorage.getItem("tikeke_lang");
     if (saved) return saved;
+    // Sinon detekte lang telefòn nan
     const nav = navigator.language?.slice(0,2).toLowerCase();
-    const supported = ["ht","fr","en","es","pt"];
-    const map = { fr:"fr", en:"en", es:"es", pt:"pt" };
-    return map[nav] || "ht";
+    const map = { ht:"ht", fr:"fr", en:"en", es:"es", pt:"pt" };
+    return map[nav] || "en"; // default anglè si lang pa sipòte
   });
   const [tab, setTab]             = useState("discover");
   const [cards, setCards]         = useState(profiles);
