@@ -1890,7 +1890,7 @@ export default function TiKeke() {
 
             {/* ACCOUNT SECTION */}
             <div style={{ padding:"20px 20px 0" }}>
-              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>👤 Kont</div>
+              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>👤 {t.account}</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 {[
                   { icon:"✏️", label:t.editProfile, action: () => { const u = {...user, profileComplete:false}; setUser(u); const s = JSON.parse(localStorage.getItem("tikeke_session")||"{}"); localStorage.setItem("tikeke_session", JSON.stringify({...s, profileComplete:false})); setShowSettings(false); } },
@@ -1918,7 +1918,7 @@ export default function TiKeke() {
               </div>
 
               {/* PRIVACY */}
-              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🔒 Konfidansyalite</div>
+              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🔒 {t.privacy}</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 {[
                   { icon:"👁️", label:t.profileVisibility, sub: visibility ? t.profileVisible : t.profileHidden, action: () => setVisibility(v => !v), toggle: true, val: visibility },
@@ -1961,7 +1961,7 @@ export default function TiKeke() {
               )}
 
               {/* LANGUAGE */}
-              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🌍 Lang</div>
+              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🌍 {t.lang_section}</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, padding:16, marginBottom:16 }}>
                 <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                   {langList.map(([code,label]) => (
@@ -1971,7 +1971,7 @@ export default function TiKeke() {
               </div>
 
               {/* LEGAL */}
-              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>📋 Legal</div>
+              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>📋 {t.legal_section}</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 {[
                   { icon:"🔐", label:"Privacy Policy", sub:"Kijan nou pwoteje done w", content: "Ti Kèkè kolekte sèlman enfòmasyon ou bay volontèman (imel, non, foto, enterè). Nou pa janm vann done ou bay tiyès pati. Nou itilize done ou sèlman pou fè app la fonksyone epi amelyore eksperyans ou. Ou ka mande nou efase tout done ou nenpòt ki lè nan support@tikeke.com." },
@@ -2002,7 +2002,7 @@ export default function TiKeke() {
               )}
 
               {/* SUPPORT */}
-              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>💬 Sipò</div>
+              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>💬 {t.support}</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 {[
                   { icon:"❓", label:t.faq, sub:t.faqSub, action: () => setShowFAQ(true) },
@@ -2064,7 +2064,7 @@ export default function TiKeke() {
               )}
 
               {/* NOTIFIKASYON */}
-              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🔔 Notifikasyon</div>
+              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🔔 {t.notifications}</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
                   <div style={{ flex:1 }}>
@@ -2076,9 +2076,9 @@ export default function TiKeke() {
                   </div>
                 </div>
                 {[
-                  { label:t.newMatch, val: notifMatch, set: setNotifMatch },
-                  { label:t.newMsg, val: notifMsg, set: setNotifMsg },
-                  { label:t.superLike, val: notifSuperLike, set: setNotifSuperLike },
+                  { label:t.newMatch || "New Match", val: notifMatch, set: setNotifMatch },
+                  { label:t.newMsg || "New Message", val: notifMsg, set: setNotifMsg },
+                  { label:"Super Like", val: notifSuperLike, set: setNotifSuperLike },
                 ].map((item, i, arr) => (
                   <div key={i} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", borderBottom: i<arr.length-1 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
                     <div style={{ flex:1, fontSize:15 }}>🔔 {item.label}</div>
@@ -2090,7 +2090,7 @@ export default function TiKeke() {
               </div>
 
               {/* CHANJE MODPAS */}
-              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🔒 Sekirite</div>
+              <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>🔒 {t.security}</div>
               <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:20, overflow:"hidden", marginBottom:16 }}>
                 <div onClick={async () => {
                   if (!user?.email) { alert("Ou pa konekte!"); return; }
