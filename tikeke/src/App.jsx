@@ -311,6 +311,13 @@ export default function TiKeke() {
   // AUTH STATE
   const [user, setUser] = useState(null);
   const [authMode, setAuthMode] = useState("login");
+  const [authMethod, setAuthMethod] = useState("email"); // email | phone
+  const [authPhone, setAuthPhone] = useState("");
+  const [otpStep, setOtpStep] = useState(false); // show OTP verification
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [generatedOtp, setGeneratedOtp] = useState("");
   const [authEmail, setAuthEmail] = useState("");
   const [authPass, setAuthPass] = useState("");
   const [authName, setAuthName] = useState("");
@@ -1569,39 +1576,181 @@ export default function TiKeke() {
               </div>
             ) : (
               <div>
+                {/* HEADER */}
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
                   <div style={{ fontSize:18, fontWeight:800 }}>{authMode==="login" ? "🔑 Konekte" : "✨ Kreye Kont"}</div>
-                  <div onClick={() => { setShowAuthPopup(false); setAuthMode("choice"); setAuthError(""); }} style={{ fontSize:22, cursor:"pointer", color:"rgba(255,255,255,0.4)" }}>✕</div>
+                  <div onClick={() => { setShowAuthPopup(false); setAuthMode("choice"); setAuthError(""); setOtpStep(false); setOtpCode(""); setOtpSent(false); }} style={{ fontSize:22, cursor:"pointer", color:"rgba(255,255,255,0.4)" }}>✕</div>
                 </div>
-                {authMode==="register" && (
-                  <input style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none", marginBottom:12, display:"block" }}
-                    placeholder="Non ou 👤" value={authName} onChange={e => setAuthName(e.target.value)} />
-                )}
-                <input style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none", marginBottom:12, display:"block" }}
-                  placeholder="📧 Imel / Email" type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
-                <input style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none", marginBottom:16, display:"block" }}
-                  placeholder="🔒 Modpas / Password" type="password" value={authPass} onChange={e => setAuthPass(e.target.value)} />
-                {authError && <div style={{ color:"#FF3B5C", fontSize:13, marginBottom:12, textAlign:"center", padding:"8px", background:"rgba(255,59,92,0.1)", borderRadius:10 }}>{authError}</div>}
-                <button onClick={handleAuth} disabled={authLoading} style={{ width:"100%", padding:"14px", borderRadius:14, border:"none", background:authLoading?"rgba(255,255,255,0.1)":"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
-                  {authLoading ? "⏳ ..." : (authMode==="login" ? "🔑 Konekte" : "✨ Kreye Kont")}
-                </button>
-                {authMode==="login" && (
-                  <div onClick={async () => {
-                    if (!authEmail.includes("@")) { setAuthError("Mete imel ou anvan"); return; }
-                    try {
-                      await firebaseResetPassword(authEmail);
-                      setAuthError("✅ Nou voye yon imel pou chanje modpas ou!");
-                    } catch(e) { setAuthError("Imel sa pa egziste"); }
-                  }} style={{ textAlign:"center", fontSize:13, color:"#A855F7", cursor:"pointer", marginBottom:12, marginTop:-4 }}>
-                    🔑 Ou bliye modpas ou?
+
+                {/* EMAIL / PHONE TOGGLE */}
+                <div style={{ display:"flex", background:"rgba(255,255,255,0.06)", borderRadius:14, padding:4, marginBottom:16 }}>
+                  {[["email","📧 Imel"],["phone","📱 Telefòn"]].map(([m, label]) => (
+                    <div key={m} onClick={() => { setAuthMethod(m); setAuthError(""); setOtpStep(false); setOtpSent(false); setOtpCode(""); }}
+                      style={{ flex:1, textAlign:"center", padding:"10px", borderRadius:10, fontSize:13, fontWeight:700, cursor:"pointer",
+                        background: authMethod===m ? "linear-gradient(135deg,#FF3B5C,#A855F7)" : "transparent",
+                        color: authMethod===m ? "#fff" : "rgba(255,255,255,0.4)" }}>
+                      {label}
+                    </div>
+                  ))}
+                </div>
+
+                {/* OTP VERIFICATION STEP */}
+                {otpStep ? (
+                  <div>
+                    <div style={{ textAlign:"center", fontSize:14, color:"rgba(255,255,255,0.6)", marginBottom:16 }}>
+                      {authMethod==="email" ? `📧 Nou voye yon kòd nan ${authEmail}` : `📱 Nou voye yon kòd nan ${authPhone}`}
+                    </div>
+                    <input style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:22, outline:"none", marginBottom:16, display:"block", textAlign:"center", letterSpacing:8, fontWeight:800 }}
+                      placeholder="_ _ _ _ _ _" maxLength={6} value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g,"").slice(0,6))} />
+                    {authError && <div style={{ color:"#FF3B5C", fontSize:13, marginBottom:12, textAlign:"center", padding:"8px", background:"rgba(255,59,92,0.1)", borderRadius:10 }}>{authError}</div>}
+                    <button onClick={async () => {
+                      if (otpCode !== generatedOtp) { setAuthError("Kòd la pa kòrèk — eseye ankò!"); return; }
+                      setOtpVerified(true);
+                      setOtpStep(false);
+                      setAuthError("");
+                      // Now create the account
+                      setAuthLoading(true);
+                      try {
+                        let authData;
+                        const emailToUse = authMethod==="phone" ? `${authPhone.replace(/\D/g,"")}@tikeke.app` : authEmail;
+                        if (authMode==="register") {
+                          authData = await firebaseSignUp(emailToUse, authPass);
+                        } else {
+                          authData = await firebaseSignIn(emailToUse, authPass);
+                        }
+                        const { idToken, localId: uid, email } = authData;
+                        const session = { uid, idToken, email, phone: authMethod==="phone" ? authPhone : "" };
+                        localStorage.setItem("tikeke_session", JSON.stringify(session));
+                        const profile = await loadUserProfile(uid, idToken);
+                        if (profile && (profile.profileComplete === true || profile.profileComplete === "true")) {
+                          const merged = { ...session, ...profile };
+                          setUser(merged);
+                          setSetupData({ name: merged.name||"", age: merged.age||"", gender: merged.gender||"", country: merged.country||"", city: merged.city||"", bio: merged.bio||"", avatar: merged.avatar||"🧑🏾", photos: Array.isArray(merged.photos)?merged.photos:[], photoUrl: merged.photoUrl||null, interests: Array.isArray(merged.interests)?merged.interests:[] });
+                        } else {
+                          const userData = { ...session, name: authName || emailToUse.split("@")[0], profileComplete: false, createdAt: new Date().toISOString() };
+                          if (profile) Object.assign(userData, profile);
+                          await saveUserProfile(userData, idToken);
+                          setUser(userData);
+                          setSetupData(p => ({ ...p, name: authName || emailToUse.split("@")[0] }));
+                        }
+                        setShowAuthPopup(false);
+                      } catch(e) {
+                        const msg = e.message||"";
+                        if (msg.includes("EMAIL_EXISTS")) setAuthError("Kont sa deja egziste!");
+                        else if (msg.includes("INVALID_PASSWORD")||msg.includes("INVALID_LOGIN_CREDENTIALS")) setAuthError("Modpas oswa imel pa kòrèk");
+                        else setAuthError("Erè — eseye ankò");
+                      }
+                      setAuthLoading(false);
+                    }} style={{ width:"100%", padding:"14px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
+                      ✅ Konfime Kòd La
+                    </button>
+                    <div onClick={() => { setOtpStep(false); setOtpCode(""); setOtpSent(false); }} style={{ textAlign:"center", fontSize:13, color:"rgba(255,255,255,0.4)", cursor:"pointer" }}>← Retounen</div>
+                  </div>
+                ) : (
+                  <div>
+                    {/* NAME FIELD (register only) */}
+                    {authMode==="register" && (
+                      <input style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none", marginBottom:12, display:"block" }}
+                        placeholder="Non ou 👤" value={authName} onChange={e => setAuthName(e.target.value)} />
+                    )}
+
+                    {/* EMAIL OR PHONE INPUT */}
+                    {authMethod==="email" ? (
+                      <input style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none", marginBottom:12, display:"block" }}
+                        placeholder="📧 Imel / Email" type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
+                    ) : (
+                      <input style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none", marginBottom:12, display:"block" }}
+                        placeholder="📱 +509 XXXX XXXX" type="tel" value={authPhone} onChange={e => setAuthPhone(e.target.value)} />
+                    )}
+
+                    {/* PASSWORD */}
+                    <input style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none", marginBottom:16, display:"block" }}
+                      placeholder="🔒 Modpas (min 6 karaktè)" type="password" value={authPass} onChange={e => setAuthPass(e.target.value)} />
+
+                    {authError && <div style={{ color:"#FF3B5C", fontSize:13, marginBottom:12, textAlign:"center", padding:"8px", background:"rgba(255,59,92,0.1)", borderRadius:10 }}>{authError}</div>}
+
+                    {/* SUBMIT */}
+                    <button onClick={async () => {
+                      setAuthError("");
+                      if (authMethod==="email" && !authEmail.includes("@")) { setAuthError("Imel pa valid"); return; }
+                      if (authMethod==="phone" && authPhone.replace(/[^0-9]/g,"").length < 8) { setAuthError("Nimewo telefòn pa valid"); return; }
+                      if (authPass.length < 6) { setAuthError("Modpas twò kout (min 6 karaktè)"); return; }
+                      setAuthLoading(true);
+                      try {
+                        const emailToUse = authMethod==="phone"
+                          ? `${authPhone.replace(/[^0-9]/g,"")}@tikeke.app`
+                          : authEmail;
+
+                        if (authMode==="register") {
+                          // Create account then send verification email
+                          const authData = await firebaseSignUp(emailToUse, authPass);
+                          const { idToken, localId: uid } = authData;
+                          // Send verification email via Firebase
+                          await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${FIREBASE_API_KEY}`, {
+                            method:"POST",
+                            headers:{"Content-Type":"application/json"},
+                            body: JSON.stringify({ requestType:"VERIFY_EMAIL", idToken })
+                          });
+                          const session = { uid, idToken, email: emailToUse, phone: authMethod==="phone" ? authPhone : "", emailVerified: false };
+                          localStorage.setItem("tikeke_session", JSON.stringify(session));
+                          const userData = { uid, idToken, email: emailToUse, name: authName || emailToUse.split("@")[0], profileComplete: false, createdAt: new Date().toISOString() };
+                          await saveUserProfile(userData, idToken);
+                          setUser(userData);
+                          setShowAuthPopup(false);
+                          if (authMethod==="email") {
+                            alert(`✅ Kont kreye! Nou voye yon imel verifikasyon nan ${authEmail}. Tcheke bwat imel ou epi klike lyen an.`);
+                          } else {
+                            alert(`✅ Kont kreye avèk nimewo ${authPhone}!`);
+                          }
+                        } else {
+                          // Login
+                          const authData = await firebaseSignIn(emailToUse, authPass);
+                          const { idToken, localId: uid } = authData;
+                          const session = { uid, idToken, email: emailToUse };
+                          localStorage.setItem("tikeke_session", JSON.stringify(session));
+                          const profile = await loadUserProfile(uid, idToken);
+                          if (profile && (profile.profileComplete===true || profile.profileComplete==="true")) {
+                            const merged = {...session, ...profile};
+                            setUser(merged);
+                            setSetupData({ name:merged.name||"", age:merged.age||"", gender:merged.gender||"", country:merged.country||"", city:merged.city||"", bio:merged.bio||"", avatar:merged.avatar||"🧑🏾", photos:Array.isArray(merged.photos)?merged.photos:[], photoUrl:merged.photoUrl||null, interests:Array.isArray(merged.interests)?merged.interests:[] });
+                          } else {
+                            const userData = {...session, name: authName||emailToUse.split("@")[0], profileComplete:false};
+                            if (profile) Object.assign(userData, profile);
+                            await saveUserProfile(userData, idToken);
+                            setUser(userData);
+                          }
+                          setShowAuthPopup(false);
+                        }
+                      } catch(e) {
+                        const msg = e.message||"";
+                        if (msg.includes("EMAIL_EXISTS")) setAuthError("Imel sa deja itilize!");
+                        else if (msg.includes("INVALID_PASSWORD")||msg.includes("INVALID_LOGIN_CREDENTIALS")) setAuthError("Modpas oswa imel pa kòrèk");
+                        else if (msg.includes("USER_NOT_FOUND")) setAuthError("Kont sa pa egziste");
+                        else setAuthError("Erè — eseye ankò");
+                      }
+                      setAuthLoading(false);
+                    }} disabled={authLoading} style={{ width:"100%", padding:"14px", borderRadius:14, border:"none", background:authLoading?"rgba(255,255,255,0.1)":"linear-gradient(135deg,#FF3B5C,#A855F7)", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
+                      {authLoading ? "⏳ ..." : (authMode==="login" ? "🔑 Konekte" : "✨ Kreye Kont")}
+                    </button>
+
+                    {authMode==="login" && (
+                      <div onClick={async () => {
+                        if (authMethod==="email" && !authEmail.includes("@")) { setAuthError("Mete imel ou anvan"); return; }
+                        try { await firebaseResetPassword(authEmail); setAuthError("✅ Nou voye yon imel pou chanje modpas ou!"); }
+                        catch(e) { setAuthError("Imel sa pa egziste"); }
+                      }} style={{ textAlign:"center", fontSize:13, color:"#A855F7", cursor:"pointer", marginBottom:12 }}>
+                        🔑 Ou bliye modpas ou?
+                      </div>
+                    )}
+
+                    <div style={{ textAlign:"center", fontSize:13, color:"rgba(255,255,255,0.4)" }}>
+                      {authMode==="login" ? "Ou pa gen kont?" : "Ou deja gen kont?"}{" "}
+                      <span onClick={() => { setAuthMode(authMode==="login"?"register":"login"); setAuthError(""); }} style={{ color:"#FF3B5C", cursor:"pointer", fontWeight:700 }}>
+                        {authMode==="login" ? "Kreye youn!" : "Konekte!"}
+                      </span>
+                    </div>
                   </div>
                 )}
-                <div style={{ textAlign:"center", fontSize:13, color:"rgba(255,255,255,0.4)" }}>
-                  {authMode==="login" ? "Ou pa gen kont?" : "Ou deja gen kont?"}{" "}
-                  <span onClick={() => { setAuthMode(authMode==="login"?"register":"login"); setAuthError(""); }} style={{ color:"#FF3B5C", cursor:"pointer", fontWeight:700 }}>
-                    {authMode==="login" ? "Kreye youn!" : "Konekte!"}
-                  </span>
-                </div>
               </div>
             )}
           </div>
