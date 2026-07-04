@@ -82,23 +82,22 @@ async function loadUserProfile(uid, idToken) {
 
 // ── CLOUDINARY PHOTO UPLOAD ─────────────────────────────────
 async function uploadPhoto(file) {
-  // Convert to base64 first (works better on mobile/iOS)
   const base64 = await new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
+    reader.onload = () => resolve(reader.result.split(",")[1]);
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
   const fd = new FormData();
-  fd.append("file", base64);
-  fd.append("upload_preset", "tikeke_profiles");
-  const res = await fetch("https://api.cloudinary.com/v1_1/lu0hry6w/image/upload", {
+  fd.append("key", "6ecd1c17011c0612b79fd39378e7c9a1");
+  fd.append("image", base64);
+  const res = await fetch("https://api.imgbb.com/1/upload", {
     method: "POST",
     body: fd
   });
   const data = await res.json();
-  if (!data.secure_url) throw new Error(data.error?.message || "Upload echwe");
-  return data.secure_url;
+  if (!data?.data?.url) throw new Error("Upload echwe");
+  return data.data.url;
 }
 
 const translations = {
@@ -636,22 +635,7 @@ export default function TiKeke() {
 
             <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
               placeholder="🌍 Peyi ou (ex: Haiti, France, USA...)" value={setupData.country} onChange={e => setSetupData(p => ({...p, country: e.target.value}))} />
-            <div onClick={() => {
-              if (!navigator.geolocation) { alert("Navigatè ou pa sipòte lokasyon"); return; }
-              setSetupError("📍 Ap detekte lokasyon ou...");
-              navigator.geolocation.getCurrentPosition(async (pos) => {
-                try {
-                  const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`);
-                  const data = await res.json();
-                  const country = data.address?.country || "";
-                  const city = data.address?.city || data.address?.town || data.address?.village || data.address?.state || "";
-                  setSetupData(p => ({...p, country, city}));
-                  setSetupError("");
-                } catch(e) { setSetupError("Pa ka detekte lokasyon — mete l manyèlman"); }
-              }, () => setSetupError("Ou refize lokasyon — mete peyi ak vil manyèlman"));
-            }} style={{ width:"100%", padding:"13px 16px", borderRadius:14, background:"rgba(255,59,92,0.12)", border:"1px solid rgba(255,59,92,0.3)", color:"#FF3B5C", fontSize:14, fontWeight:700, cursor:"pointer", textAlign:"center" }}>
-              📍 Detekte Lokasyon Mwen Otomatikman
-            </div>
+
             <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
               placeholder="📍 Vil ou (ex: Port-au-Prince, Paris...)" value={setupData.city} onChange={e => setSetupData(p => ({...p, city: e.target.value}))} />
 
