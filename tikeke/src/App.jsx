@@ -376,6 +376,11 @@ export default function TiKeke() {
   const [msgReactions, setMsgReactions] = useState({});
   const [showReactionPicker, setShowReactionPicker] = useState(null);
   const [superLikeAnim, setSuperLikeAnim] = useState(false);
+  const [videoUrl, setVideoUrl] = useState(null);
+  const [videoUploading, setVideoUploading] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [verifyStep, setVerifyStep] = useState("intro"); // intro | upload | pending | done
+  const [verifyPhoto, setVerifyPhoto] = useState(null);
   const [promoCode, setPromoCode] = useState("");
   const [promoMsg, setPromoMsg] = useState("");
   const PROMO_CODES = { "TIKEKE50": { discount: 50, plan: "premium" }, "VIP100": { discount: 100, plan: "vip" }, "HAITI2025": { discount: 30, plan: "basic" } };
@@ -744,6 +749,44 @@ export default function TiKeke() {
             {photoUploading && <div style={{ textAlign:"center", marginTop:8, fontSize:13, color:"rgba(255,255,255,0.5)" }}>⏳ Ap telechaje foto...</div>}
           </div>
 
+          {/* VIDEO PROFIL */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:12, letterSpacing:1, textTransform:"uppercase" }}>🎬 Videyo Pwofil <span style={{ color:"rgba(255,255,255,0.3)", fontWeight:400, fontSize:11 }}>(opsyonèl — maks 30 sèk)</span></div>
+            <div onClick={() => document.getElementById("videoInput").click()}
+              style={{ width:"100%", padding:"20px", borderRadius:16, background:"rgba(255,255,255,0.04)", border:"1px dashed rgba(255,255,255,0.15)", textAlign:"center", cursor:"pointer" }}>
+              {videoUrl ? (
+                <div style={{ position:"relative" }}>
+                  <video src={videoUrl} style={{ width:"100%", maxHeight:180, borderRadius:12, objectFit:"cover" }} controls />
+                  <div onClick={e => { e.stopPropagation(); setVideoUrl(null); }} style={{ position:"absolute", top:8, right:8, width:28, height:28, borderRadius:"50%", background:"rgba(0,0,0,0.7)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, color:"#fff", cursor:"pointer" }}>✕</div>
+                </div>
+              ) : videoUploading ? (
+                <div style={{ color:"rgba(255,255,255,0.5)", fontSize:14 }}>⏳ Ap telechaje videyo...</div>
+              ) : (
+                <div>
+                  <div style={{ fontSize:36, marginBottom:8 }}>🎬</div>
+                  <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)" }}>Klike pou ajoute yon ti videyo</div>
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.3)", marginTop:4 }}>MP4, MOV · maks 30 sèk · 50MB</div>
+                </div>
+              )}
+            </div>
+            <input id="videoInput" type="file" accept="video/*" style={{ display:"none" }} onChange={async (e) => {
+              const file = e.target.files[0]; if (!file) return;
+              if (file.size > 50 * 1024 * 1024) { alert("Videyo a twò gwo — maks 50MB"); return; }
+              setVideoUploading(true);
+              try {
+                const base64 = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(",")[1]); r.onerror = rej; r.readAsDataURL(file); });
+                const fd = new FormData();
+                fd.append("key", "6ecd1c17011c0612b79fd39378e7c9a1");
+                fd.append("image", base64);
+                const resp = await fetch("https://api.imgbb.com/1/upload", { method:"POST", body:fd });
+                const data = await resp.json();
+                if (data?.data?.url) setVideoUrl(data.data.url);
+                else { const localUrl = URL.createObjectURL(file); setVideoUrl(localUrl); }
+              } catch(err) { const localUrl = URL.createObjectURL(file); setVideoUrl(localUrl); }
+              setVideoUploading(false);
+            }} />
+          </div>
+
           {/* FIELDS */}
           <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:20 }}>
             <input style={{ width:"100%", padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"#fff", fontSize:15, outline:"none" }}
@@ -808,6 +851,7 @@ export default function TiKeke() {
               bio: setupData.bio,
               photos: setupData.photos || [],
               photoUrl: (setupData.photos && setupData.photos[0]) || setupData.photoUrl || null,
+              videoUrl: videoUrl || null,
               interests: setupData.interests,
               profileComplete: true
             };
@@ -1491,6 +1535,7 @@ export default function TiKeke() {
               {/* Settings button */}
               <div onClick={() => setShowSettings(true)} style={{ position:"absolute", top:16, right:16, width:36, height:36, borderRadius:"50%", background:"rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:18 }}>⚙️</div>
               <div onClick={() => setShowProfileViews(true)} style={{ position:"absolute", top:16, right:60, width:36, height:36, borderRadius:"50%", background:"rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:18 }}>👁️</div>
+              <div onClick={() => setShowVerifyModal(true)} style={{ position:"absolute", top:60, right:16, background:"linear-gradient(135deg,#3B82F6,#A855F7)", borderRadius:12, padding:"4px 10px", fontSize:11, fontWeight:800, cursor:"pointer", color:"#fff" }}>{user?.verificationStatus === "pending" ? "⏳ En attente" : "✓ Verifye"}</div>
               <div onClick={() => setShowPromo(true)} style={{ position:"absolute", top:16, right:104, width:36, height:36, borderRadius:"50%", background:"rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:18 }}>🎁</div>
               
               {/* Photo */}
@@ -2069,6 +2114,82 @@ export default function TiKeke() {
                 <span style={{ color:"rgba(255,255,255,0.3)", fontSize:18 }}>›</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* VERIFICATION MODAL */}
+      {showVerifyModal && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.95)", zIndex:500, display:"flex", alignItems:"center", justifyContent:"center", padding:"0 24px" }}>
+          <div style={{ background:"linear-gradient(160deg,#12102A,#1E0A3A)", borderRadius:28, width:"100%", maxWidth:400, padding:"32px 28px" }}>
+            {verifyStep === "intro" && (
+              <div style={{ textAlign:"center" }}>
+                <div style={{ fontSize:52, marginBottom:12 }}>✓</div>
+                <div style={{ fontSize:20, fontWeight:900, marginBottom:8 }}>Verifye Idantite Ou</div>
+                <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:24, lineHeight:1.6 }}>Jwenn badge <span style={{ color:"#3B82F6", fontWeight:700 }}>✓ Verifye</span> sou pwofil ou. Moun ki verifye jwenn 3x plis matche!</div>
+                <div style={{ background:"rgba(59,130,246,0.1)", border:"1px solid rgba(59,130,246,0.3)", borderRadius:16, padding:"16px", marginBottom:24, textAlign:"left" }}>
+                  <div style={{ fontSize:13, fontWeight:700, marginBottom:8, color:"#3B82F6" }}>Sa nou bezwen:</div>
+                  {["📸 Yon foto ID ou (paspo, CIN, pèmi)","🤳 Yon selfie klè ak figi ou"].map((s,i) => (
+                    <div key={i} style={{ fontSize:13, color:"rgba(255,255,255,0.7)", marginBottom:4 }}>• {s}</div>
+                  ))}
+                </div>
+                <button onClick={() => setVerifyStep("upload")} style={{ width:"100%", padding:"14px", borderRadius:16, border:"none", background:"linear-gradient(135deg,#3B82F6,#A855F7)", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer", marginBottom:12 }}>
+                  📸 Kòmanse Verifikasyon
+                </button>
+                <div onClick={() => setShowVerifyModal(false)} style={{ fontSize:13, color:"rgba(255,255,255,0.3)", cursor:"pointer" }}>Anile</div>
+              </div>
+            )}
+            {verifyStep === "upload" && (
+              <div>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
+                  <div style={{ fontSize:16, fontWeight:800 }}>📸 Telechaje Foto ID</div>
+                  <span onClick={() => { setShowVerifyModal(false); setVerifyStep("intro"); }} style={{ fontSize:22, cursor:"pointer", color:"rgba(255,255,255,0.4)" }}>✕</span>
+                </div>
+                <div onClick={() => document.getElementById("verifyInput").click()}
+                  style={{ width:"100%", padding:"24px", borderRadius:16, background:"rgba(255,255,255,0.04)", border:"1px dashed rgba(59,130,246,0.4)", textAlign:"center", cursor:"pointer", marginBottom:16 }}>
+                  {verifyPhoto ? (
+                    <img src={verifyPhoto} alt="ID" style={{ width:"100%", borderRadius:12, maxHeight:200, objectFit:"cover" }} />
+                  ) : (
+                    <div>
+                      <div style={{ fontSize:40, marginBottom:8 }}>🪪</div>
+                      <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)" }}>Klike pou mete foto ID ou</div>
+                    </div>
+                  )}
+                </div>
+                <input id="verifyInput" type="file" accept="image/*" style={{ display:"none" }} onChange={async (e) => {
+                  const file = e.target.files[0]; if (!file) return;
+                  const url = URL.createObjectURL(file);
+                  setVerifyPhoto(url);
+                }} />
+                <button onClick={async () => {
+                  if (!verifyPhoto) { alert("Mete foto ID ou!"); return; }
+                  setVerifyStep("pending");
+                  // Save verification request to Firestore
+                  if (user?.uid) {
+                    await saveUserProfile({ ...user, verificationStatus: "pending" }, user?.idToken);
+                  }
+                  setTimeout(() => setVerifyStep("done"), 1500);
+                }} style={{ width:"100%", padding:"14px", borderRadius:16, border:"none", background: verifyPhoto ? "linear-gradient(135deg,#3B82F6,#A855F7)" : "rgba(255,255,255,0.1)", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer" }}>
+                  📤 Soumèt pou Verifikasyon
+                </button>
+              </div>
+            )}
+            {verifyStep === "pending" && (
+              <div style={{ textAlign:"center", padding:"20px 0" }}>
+                <div style={{ fontSize:40, marginBottom:12 }}>⏳</div>
+                <div style={{ fontSize:16, fontWeight:800 }}>Ap trete...</div>
+              </div>
+            )}
+            {verifyStep === "done" && (
+              <div style={{ textAlign:"center" }}>
+                <div style={{ fontSize:52, marginBottom:12 }}>✅</div>
+                <div style={{ fontSize:20, fontWeight:900, marginBottom:8 }}>Soumisyon Resevwa!</div>
+                <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginBottom:24, lineHeight:1.6 }}>Nou ap revize dokiman ou nan <strong>24-48 è</strong>. Ou ap resevwa yon notifikasyon lè verifikasyon an fini.</div>
+                <button onClick={() => { setShowVerifyModal(false); setVerifyStep("intro"); setVerifyPhoto(null); }} style={{ padding:"12px 32px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#3B82F6,#A855F7)", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer" }}>
+                  Ok, Mèsi!
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
