@@ -1,4 +1,4 @@
-// — ERROR LOGGING —
+
 async function logError(errorMessage, errorSource) {
   try {
     await fetch(`${FIRESTORE_URL}/errorLogs`, {
@@ -17,9 +17,9 @@ async function logError(errorMessage, errorSource) {
 }
 
 window.onerror = function(message, source, lineno, colno, error) {
-  logError(message, `${source}:${lineno}:${colno}`);
+
 };
 
 window.onunhandledrejection = function(event) {
-  logError(event.reason?.message || event.reason, "unhandledrejection");
+ 
 };
