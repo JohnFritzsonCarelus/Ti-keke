@@ -255,8 +255,7 @@ export default function TiKeke() {
   const [showAuthPopup, setShowAuthPopup] = useState(false);
   const [authPopupMsg, setAuthPopupMsg] = useState("");
   const [showSettings, setShowSettings] = useState(false);
-  const [realUsers, setRealUsers] = useState([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
+
 
   useEffect(() => {
     async function loadSession() {
@@ -299,21 +298,7 @@ export default function TiKeke() {
     loadSession();
   }, []);
 
-  // Load real users for swipe
-  useEffect(() => {
-    async function fetchUsers() {
-      if (!user?.uid) return;
-      setLoadingUsers(true);
-      const users = await loadRealUsers(user.uid);
-      if (users.length > 0) {
-        setCards(users);
-      }
-      setLoadingUsers(false);
-    }
-    if (user?.profileComplete === true || user?.profileComplete === "true") {
-      fetchUsers();
-    }
-  }, [user?.uid]);
+
 
   async function handleAuth() {
     setAuthError(""); setAuthLoading(true);
@@ -897,18 +882,11 @@ export default function TiKeke() {
             <div style={{ width:"100%", maxWidth:380, height:480, position:"relative", marginBottom:24 }}>
               {cards.length === 0 ? (
                 <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"center", textAlign:"center", color:"rgba(255,255,255,0.4)" }}>
-                  {loadingUsers ? (
-                    <>
-                      <div style={{ fontSize:40, marginBottom:16 }}>⏳</div>
-                      <div style={{ fontSize:16, fontWeight:700 }}>Ap chaje pwofil...</div>
-                    </>
-                  ) : (
                     <>
                       <div style={{ fontSize:60, marginBottom:16 }}>😅</div>
                       <div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>{t.noMore}</div>
                       <div style={{ fontSize:14 }}>{t.comeBack}</div>
                     </>
-                  )}
                 </div>
               ) : cards.map((p, i) => (
                 <div key={p.id} style={{
