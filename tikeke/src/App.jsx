@@ -4,7 +4,7 @@ const FIREBASE_DB_URL = "https://tikeke-a91b8-default-rtdb.firebaseio.com";
 const FIRESTORE_URL = "https://firestore.googleapis.com/v1/projects/tikeke-a91b8/databases/(default)/documents";
 const FIREBASE_API_KEY = "AIzaSyC8sC0fiGwOAZXMTph5EHAwlTF8PANnkwU";
 const FIREBASE_AUTH_URL = "https://identitytoolkit.googleapis.com/v1/accounts";
-const PAYPAL_CLIENT_ID = "AQ8vWtSeGLcJf5bno8_ADrU7YE2J6SwWCx-zfStbXqYRufaOzB7aEEcWvfRSGIxiIaY8Uwcz8Rgnu-Mv";
+const PAYPAL_CLIENT_ID = "ASkzpGzafflo31iHiXLTEmPDIXxLR5tIHDBJqIwZ31c6jvIs9FO3OHOLVNMBiITKIayX3oYhjJcpJRHM";
 
 // ── FIREBASE AUTH REST ──────────────────────────────────────
 async function firebaseSignUp(email, password) {
