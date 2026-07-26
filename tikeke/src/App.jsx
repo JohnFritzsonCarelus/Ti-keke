@@ -1289,39 +1289,30 @@ export default function TiKeke() {
               )}
 
               {/* APPLE PAY */}
-              {payMethod === "applepay" && (
-                <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                  <div style={{ background:"linear-gradient(135deg,#1C1C1E,#2C2C2E)", borderRadius:16, padding:"20px", textAlign:"center" }}>
-                    <div style={{ fontSize:40, marginBottom:8 }}>🍎</div>
-                    <div style={{ fontWeight:800, fontSize:16 }}>Apple Pay</div>
-                    <div style={{ fontSize:12, color:"rgba(255,255,255,0.5)", marginTop:4 }}>Peman rapid ak Touch ID / Face ID</div>
-                  </div>
-                  <div onClick={async () => {
-                    if (!window.ApplePaySession || !ApplePaySession.canMakePayments()) {
-                      alert("Apple Pay pa disponib sou aparèy sa a. Itilize yon iPhone oswa Mac ak Safari.");
-                      return;
-                    }
-                    const request = {
-                      countryCode: "US",
-                      currencyCode: "USD",
-                      supportedNetworks: ["visa","masterCard","amex"],
-                      merchantCapabilities: ["supports3DS"],
-                      total: { label: `Ti Kèkè ${selectedPlan?.key}`, amount: String(selectedPlan?.price || "9.99") }
-                    };
-                    const session = new ApplePaySession(3, request);
-                    session.onvalidatemerchant = async (e) => {
-                      // Note: merchant validation requires server-side - for now show message
-                      alert("Pou aktive Apple Pay vre, ou bezwen yon sèvè backend. Kontakte support@tikeke.com.");
-                      session.abort();
-                    };
-                    session.begin();
-                  }} style={{ width:"100%", padding:"16px", borderRadius:16, border:"none", background:"#000", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>
-                    🍎 Peye ak Apple Pay
-                  </div>
-                  <div style={{ textAlign:"center", fontSize:11, color:"rgba(255,255,255,0.3)" }}>Disponib sou iPhone, iPad, Mac ak Safari sèlman</div>
-                </div>
-              )}
-
+{payMethod === "applepay" && (
+  <div onClick={async () => {
+    try {
+      const res = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: Math.round((selectedPlan?.price || 9.99) * 100),
+          planName: `Ti Kèkè ${selectedPlan?.key || "Premium"}`
+        })
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Erè: " + (data.error || "Peman pa disponib kounye a"));
+      }
+    } catch (e) {
+      alert("Erè koneksyon. Eseye ankò.");
+    }
+  }} style={{ width:"100%", padding:"16px", borderRadius:16, border:"none", background:"#635BFF", color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer", display:"flex", justifyContent:"center", gap:10 }}>
+    💳 Peye ak Kat (Stripe)
+  </div>
+)}
               {/* PAYPAL */}
               {payMethod === "paypal" && (
                 <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
