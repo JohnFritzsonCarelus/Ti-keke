@@ -1295,10 +1295,11 @@ export default function TiKeke() {
       const res = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: Math.round((selectedPlan?.price || 9.99) * 100),
-          planName: `Ti Kèkè ${selectedPlan?.key || "Premium"}`
-        })
+       body: JSON.stringify({
+  amount: Math.round((selectedPlan?.price || 9.99) * 100),
+  planName: `Ti Kèkè ${selectedPlan?.key || "Premium"}`,
+  uid: user?.uid
+})
       });
       const data = await res.json();
       if (data.url) {
